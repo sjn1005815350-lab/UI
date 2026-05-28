@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>交易下单 Demo</title>
+  <style>
+    :root {
+      --bg: #0f1015;
+      --panel: #15161d;
+      --line: #333640;
+      --line-soft: #272a33;
+      --field: #191a22;
+      --field-active: #242630;
+      --text: #e8e8eb;
+      --muted: #969aa5;
+      --muted-2: #747986;
+      --blue: #2f80ff;
+      --orange: #ff5a0a;
+      --teal: #1ca69a;
+      --yellow: #f3a932;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(48, 128, 255, 0.12), transparent 34%),
+        #08090d;
+      color: var(--text);
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+      font-size: 13px;
+    }
+
+    .ticket {
+      width: 426px;
+      background: var(--bg);
+      border: 1px solid #1e2028;
+      border-radius: 5px;
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.48);
+      overflow: hidden;
+    }
+
+    .title {
+      height: 31px;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .tab {
+      height: 36px;
+      display: grid;
+      place-items: center;
+      color: #d5d7dc;
+      font-weight: 700;
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab.active {
+      color: #fff;
+      border-bottom-color: var(--blue);
+      background: #171922;
+    }
+
+    .content {
+      padding: 10px 12px 6px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      align-items: center;
+      gap: 7px;
+      min-height: 32px;
+    }
+
+    .label {
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .control {
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 0 9px;
+      border: 1px solid #3a3d48;
+      border-radius: 4px;
+      background: var(--field);
+      color: #e9ebef;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+    }
+
+    .control .placeholder {
+      color: #a3a7b0;
+    }
+
+    .chevron,
+    .x {
+      color: #9095a1;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .trade-side {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      height: 30px;
+      overflow: hidden;
+      border-radius: 3px;
+      border: 1px solid #3a3d48;
+      background: #3c3e48;
+    }
+
+    .side-btn {
+      border: 0;
+      color: var(--teal);
+      background: transparent;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .side-btn.active {
+      color: #fff;
+      background: var(--orange);
+    }
+
+    .number-control {
+      height: 30px;
+      display: grid;
+      grid-template-columns: 32px 1fr 58px 32px;
+      align-items: center;
+      border: 1px solid #3a3d48;
+      border-radius: 4px;
+      background: var(--field);
+      overflow: hidden;
+    }
+
+    .number-control span {
+      padding: 0 10px;
+      color: #a5a9b2;
+    }
+
+    .number-control .value {
+      text-align: right;
+      color: #cfd2d8;
+    }
+
+    .number-control button {
+      height: 100%;
+      border: 0;
+      background: transparent;
+      color: #a1a6b1;
+      font-size: 25px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .number-control button + span,
+    .number-control .value + button {
+      border-left: 1px solid #383b45;
+    }
+
+    .gear {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #535966;
+      border-radius: 50%;
+      color: #9097a4;
+      font-size: 15px;
+    }
+
+    .inline-control {
+      display: grid;
+      grid-template-columns: 1fr 28px;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .quantity-picker-wrap {
+      position: relative;
+    }
+
+    .quantity-menu-btn {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #535966;
+      border-radius: 3px;
+      background: #11131a;
+      color: #8f98a8;
+      cursor: pointer;
+    }
+
+    .quantity-menu-btn.active {
+      border-color: #d34542;
+      box-shadow: 0 0 0 1px rgba(211, 69, 66, 0.45);
+    }
+
+    .quantity-menu-btn svg {
+      width: 17px;
+      height: 17px;
+      stroke: currentColor;
+    }
+
+    .quantity-popover {
+      position: absolute;
+      top: 29px;
+      right: 0;
+      z-index: 5;
+      width: 136px;
+      display: none;
+      grid-template-columns: 54px 82px;
+      padding: 5px 0;
+      border: 1px solid #3c3a45;
+      background: #17151d;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.42);
+    }
+
+    .quantity-popover.open {
+      display: grid;
+    }
+
+    .quantity-option {
+      display: contents;
+      cursor: pointer;
+    }
+
+    .quantity-option span {
+      height: 31px;
+      display: flex;
+      align-items: center;
+      color: #c4c8d1;
+      font-size: 14px;
+    }
+
+    .quantity-option .ratio {
+      padding-left: 10px;
+    }
+
+    .quantity-option .amount {
+      justify-content: flex-end;
+      padding-right: 12px;
+      color: #d4d8e3;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .quantity-option:hover span,
+    .quantity-option.selected span {
+      background: #24232d;
+      color: #fff;
+    }
+
+    .star {
+      color: #1395ff;
+      font-size: 18px;
+      vertical-align: -2px;
+    }
+
+    .available {
+      height: 14px;
+      margin-top: -2px;
+      padding-right: 28px;
+      color: #9fa4ad;
+      font-size: 11px;
+      text-align: right;
+    }
+
+    .available strong {
+      color: #1ea5a1;
+    }
+
+    .mode {
+      margin-top: 7px;
+    }
+
+    .mode .control {
+      background: #595b62;
+      border-color: #646770;
+      font-weight: 700;
+    }
+
+    .expand {
+      height: 32px;
+      display: grid;
+      place-items: center;
+      color: #4395ff;
+      font-size: 13px;
+    }
+
+    .expand::after {
+      content: "";
+      width: 8px;
+      height: 8px;
+      margin-left: 7px;
+      display: inline-block;
+      border-right: 1px solid currentColor;
+      border-bottom: 1px solid currentColor;
+      transform: rotate(45deg) translateY(-2px);
+    }
+
+    .summary {
+      display: grid;
+      gap: 8px;
+      padding-bottom: 86px;
+    }
+
+    .summary-line {
+      display: flex;
+      gap: 8px;
+      color: var(--muted);
+    }
+
+    .currency.cny {
+      color: var(--orange);
+      font-weight: 800;
+    }
+
+    .currency.hkd {
+      color: var(--yellow);
+      font-weight: 800;
+    }
+
+    .footer {
+      height: 48px;
+      display: grid;
+      grid-template-columns: 26px 26px 1fr;
+      gap: 5px;
+      align-items: center;
+      padding: 0 8px 5px 12px;
+    }
+
+    .icon-btn {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      background: transparent;
+      color: #969ca7;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    .submit {
+      height: 28px;
+      border: 0;
+      border-radius: 2px;
+      background: var(--orange);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        place-items: start center;
+        padding: 10px;
+      }
+
+      .ticket {
+        width: min(426px, 100%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="ticket" aria-label="交易下单面板">
+    <header class="title">交易下单</header>
+
+    <nav class="tabs" aria-label="交易类型">
+      <div class="tab">普通交易</div>
+      <div class="tab active">敲口控制交易</div>
+      <div class="tab">标准套利</div>
+    </nav>
+
+    <section class="content">
+      <div class="form-row">
+        <label class="label">交易账户</label>
+        <div class="control">999001交易对手 <span class="chevron">⌄</span></div>
+      </div>
+
+      <div class="form-row">
+        <label class="label">对冲渠道</label>
+        <div class="control"><span class="placeholder"></span><span><span class="x">×</span> <span class="chevron">⌄</span></span></div>
+      </div>
+
+      <div class="form-row">
+        <label class="label">订单类型</label>
+        <div class="control">限价单 <span class="chevron">⌄</span></div>
+      </div>
+
+      <div class="form-row">
+        <label class="label">标的代码</label>
+        <div class="control">000001.SZ 平安银行 <span class="chevron">⌄</span></div>
+      </div>
+
+      <div class="form-row">
+        <label class="label">订单方向</label>
+        <div class="trade-side" role="group" aria-label="订单方向">
+          <button class="side-btn active" type="button">买入</button>
+          <button class="side-btn" type="button">卖出</button>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="label">订单价格 <span class="star">☆</span></label>
+        <div class="inline-control">
+          <div class="number-control">
+            <button class="price-step" data-step="-0.01" type="button" aria-label="减少价格">−</button>
+            <span></span>
+            <span class="value" id="priceValue">10.00</span>
+            <button class="price-step" data-step="0.01" type="button" aria-label="增加价格">+</button>
+          </div>
+          <div class="gear">⚙</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="label">委托数量</label>
+        <div class="inline-control quantity-picker-wrap">
+          <div class="number-control">
+            <button type="button" aria-label="减少数量">−</button>
+            <span></span>
+            <span class="value" id="quantityValue">0</span>
+            <button type="button" aria-label="增加数量">+</button>
+          </div>
+          <button class="quantity-menu-btn" id="quantityMenuBtn" type="button" aria-label="选择委托数量比例">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 7h7m4 0h5M4 12h5m4 0h7M4 17h7m4 0h5" stroke-width="1.7" stroke-linecap="round"/>
+              <circle cx="13" cy="7" r="1.5" stroke-width="1.4"/>
+              <circle cx="11" cy="12" r="1.5" stroke-width="1.4"/>
+              <circle cx="13" cy="17" r="1.5" stroke-width="1.4"/>
+            </svg>
+          </button>
+          <div class="quantity-popover" id="quantityPopover" aria-label="委托数量比例选择">
+            <button class="quantity-option selected" data-ratio="1" type="button">
+              <span class="ratio">全仓</span>
+              <span class="amount">0</span>
+            </button>
+            <button class="quantity-option" data-ratio="0.5" type="button">
+              <span class="ratio">1/2</span>
+              <span class="amount">0</span>
+            </button>
+            <button class="quantity-option" data-ratio="0.3333333333" type="button">
+              <span class="ratio">1/3</span>
+              <span class="amount">0</span>
+            </button>
+            <button class="quantity-option" data-ratio="0.25" type="button">
+              <span class="ratio">1/4</span>
+              <span class="amount">0</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="available">可买数量 <strong id="availableQty">0</strong></div>
+
+      <div class="form-row mode">
+        <label class="label">订单模式</label>
+        <div class="control">LowTouch <span class="chevron">⌄</span></div>
+      </div>
+
+      <div class="expand">展开</div>
+
+      <div class="summary">
+        <div class="summary-line"><span>预估下单金额</span><span class="currency cny">CNY</span><span>--</span></div>
+        <div class="summary-line"><span>可用资金</span><span class="currency hkd">HKD</span><span>0.0000</span></div>
+        <div class="summary-line"><span>可用购买力</span><span class="currency hkd">HKD</span><span>0.0000</span></div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <button class="icon-btn" type="button" aria-label="设置">⚙</button>
+      <button class="icon-btn" type="button" aria-label="刷新">⟳</button>
+      <button class="submit" type="button">下单</button>
+    </footer>
+  </main>
+
+  <script>
+    const buyingPower = 163000;
+    const lotSize = 100;
+    const priceValue = document.querySelector("#priceValue");
+    const quantityValue = document.querySelector("#quantityValue");
+    const availableQty = document.querySelector("#availableQty");
+    const quantityMenuBtn = document.querySelector("#quantityMenuBtn");
+    const quantityPopover = document.querySelector("#quantityPopover");
+    const quantityOptions = document.querySelectorAll(".quantity-option");
+
+    function roundToLot(value) {
+      return Math.floor(value / lotSize) * lotSize;
+    }
+
+    function getCurrentPrice() {
+      return Number.parseFloat(priceValue.textContent) || 0;
+    }
+
+    function getAvailableQuantity() {
+      const price = getCurrentPrice();
+      if (price <= 0) {
+        return 0;
+      }
+      return roundToLot(buyingPower / price);
+    }
+
+    function syncAvailableQuantity() {
+      const available = getAvailableQuantity();
+      availableQty.textContent = available.toLocaleString("zh-CN").replace(/,/g, "");
+
+      quantityOptions.forEach((option) => {
+        const ratio = Number.parseFloat(option.dataset.ratio);
+        const amount = roundToLot(available * ratio);
+        option.querySelector(".amount").textContent = amount.toLocaleString("zh-CN").replace(/,/g, "");
+      });
+
+      const currentQuantity = Number.parseInt(quantityValue.textContent, 10) || 0;
+      if (currentQuantity > available) {
+        quantityValue.textContent = available;
+      }
+    }
+
+    document.querySelectorAll(".side-btn").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".side-btn").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+      });
+    });
+
+    document.querySelectorAll(".price-step").forEach((button) => {
+      button.addEventListener("click", () => {
+        const nextPrice = Math.max(0.01, getCurrentPrice() + Number.parseFloat(button.dataset.step));
+        priceValue.textContent = nextPrice.toFixed(2);
+        syncAvailableQuantity();
+      });
+    });
+
+    quantityMenuBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      quantityMenuBtn.classList.toggle("active");
+      quantityPopover.classList.toggle("open");
+    });
+
+    quantityOptions.forEach((option) => {
+      option.addEventListener("click", () => {
+        quantityOptions.forEach((item) => item.classList.remove("selected"));
+        option.classList.add("selected");
+        quantityValue.textContent = option.querySelector(".amount").textContent;
+        quantityMenuBtn.classList.remove("active");
+        quantityPopover.classList.remove("open");
+      });
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".quantity-picker-wrap")) {
+        quantityMenuBtn.classList.remove("active");
+        quantityPopover.classList.remove("open");
+      }
+    });
+
+    syncAvailableQuantity();
+  </script>
+</body>
+</html>

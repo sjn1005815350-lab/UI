@@ -2007,6 +2007,90 @@
       background: #090a0f;
     }
 
+    .rk-filters {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 5px 8px;
+      border-bottom: 1px solid var(--bk-line);
+      background: #0d0f16;
+    }
+
+    .rk-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 5px 8px;
+      border-bottom: 1px solid var(--bk-line);
+      background: #0f1119;
+    }
+
+    /* 多账户强平：左侧篮子汇总 + 右侧篮子明细 */
+    .rk-mb-split { display: grid; grid-template-columns: 268px 1fr; min-height: 340px; }
+    .rk-mb-left { border-right: 1px solid #232733; background: #0b0d13; overflow: auto; }
+
+    .rk-mb-item {
+      display: block;
+      width: 100%;
+      padding: 8px 10px;
+      border: 0;
+      border-bottom: 1px solid #1d212b;
+      border-left: 3px solid transparent;
+      background: transparent;
+      color: #cbd1dc;
+      font-family: inherit;
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .rk-mb-item:hover { background: #171b25; }
+    .rk-mb-item.active { border-left-color: var(--bk-btn); background: #1a2130; color: #fff; }
+    .rk-mb-item b { display: block; color: #eef1f7; font-weight: 700; line-height: 1.7; }
+    .rk-mb-item span { color: #8f96a3; }
+    .rk-mb-right { display: flex; flex-direction: column; min-width: 0; }
+    .rk-mb-empty { padding: 40px 10px; color: #8f96a3; text-align: center; }
+
+    /* 触发风控线浮窗：悬停不消失，点击跳转 */
+    .rk-trigger-host {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 80;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 400px;
+    }
+
+    .rk-trigger-pop {
+      padding: 9px 11px;
+      border: 1px solid #3a4150;
+      border-left: 4px solid #e05252;
+      border-radius: 3px;
+      background: #1b2030;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.6);
+      color: #dfe4ed;
+      font-size: 12px;
+      line-height: 1.75;
+      cursor: pointer;
+    }
+
+    .rk-trigger-pop:hover { background: #22304a; }
+    .rk-trigger-pop .head { display: flex; align-items: center; justify-content: space-between; color: #eef1f7; font-weight: 700; }
+    .rk-trigger-pop .tip { color: #8f96a3; font-size: 11px; }
+
+    .rk-trigger-close {
+      border: 0;
+      background: transparent;
+      color: #8f96a3;
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
     /* 消息中心（trader 端风控消息） */
     .rk-bell { position: fixed; top: 6px; right: 14px; z-index: 40; }
 
@@ -3438,17 +3522,42 @@
       </section>
 
       <!-- 风控 - 保证金监测 -->
-      <section class="view-panel bk-view" id="view-riskMargin" aria-label="保证金监测">
+      <section class="view-panel bk-view" id="view-riskMargin" aria-label="风险监控">
         <div class="bk-panel">
           <div class="rk-overview">
-            <div class="rk-ov-card">总净资产 <strong id="rkTotalNav">--</strong></div>
-            <div class="rk-ov-card">总超额保证金 <strong id="rkTotalExcess">--</strong></div>
             <div class="rk-status-cards" id="rkStatusCards"></div>
+          </div>
+
+          <div class="rk-filters">
+            <span class="bk-label">客户名</span>
+            <input class="bk-input" id="rkFilterCustomer" style="width:140px" placeholder="全部" />
+            <span class="bk-label">资金账号名称</span>
+            <input class="bk-input" id="rkFilterFund" style="width:180px" placeholder="全部" />
+            <span class="bk-label">交易账户</span>
+            <input class="bk-input" id="rkFilterAccount" style="width:140px" placeholder="全部" />
+            <button class="bk-btn primary" id="rkFilterApply" type="button">筛选</button>
+            <button class="bk-btn" id="rkFilterReset" type="button">重置</button>
             <span class="bk-spacer"></span>
             <span class="bk-label">数据更新时间</span>
             <input class="bk-input" id="rkMtmTime" style="width:150px" readonly />
             <button class="bk-btn" id="rkRefresh" type="button">刷新</button>
+          </div>
+
+          <div class="rk-toolbar">
             <button class="bk-btn primary" id="rkAddRule" type="button">新增</button>
+            <button class="bk-btn danger" id="rkDelRule" type="button" disabled>删除</button>
+            <button class="bk-btn" id="rkImportRule" type="button">导入</button>
+            <button class="bk-btn" id="rkExportTpl" type="button">导入模板</button>
+            <span class="bk-menu-wrap">
+              <button class="bk-btn danger" id="rkBatchCloseAcc" type="button" disabled>批量强平账户 ⌄</button>
+              <span class="bk-menu" id="rkBatchAccMenu">
+                <button data-close-mode="市值" type="button">按市值强平</button>
+                <button data-close-mode="数量" type="button">按数量强平</button>
+              </span>
+            </span>
+            <button class="bk-btn" id="rkLiqConfig" type="button">强平篮子配置</button>
+            <span class="bk-spacer"></span>
+            <span class="bk-count" id="rkAccSummary">未勾选账户</span>
           </div>
 
           <div class="rk-sheets" id="rkSheets">
@@ -3458,7 +3567,7 @@
           </div>
 
           <div class="bk-table-wrap">
-            <table class="bk-table" id="rkTable" style="min-width:1720px">
+            <table class="bk-table" id="rkTable" style="min-width:2030px">
               <thead></thead>
               <tbody></tbody>
             </table>
@@ -3470,7 +3579,7 @@
               <span style="display:flex;align-items:center;gap:10px">
                 <span class="bk-count" id="rkPosSummary">点击上方任一账户行下钻持仓</span>
                 <span class="bk-menu-wrap">
-                  <button class="bk-btn danger" id="rkBatchClose" type="button" disabled>批量强平 ⌄</button>
+                  <button class="bk-btn danger" id="rkBatchClose" type="button" disabled>批量强平持仓 ⌄</button>
                   <span class="bk-menu right" id="rkBatchMenu">
                     <button data-close-mode="市值" type="button">按市值强平</button>
                     <button data-close-mode="数量" type="button">按数量强平</button>
@@ -3478,27 +3587,9 @@
                 </span>
               </span>
             </div>
-            <div class="rk-fund-strip" id="rkFundStrip">请选择账户</div>
             <div class="bk-table-wrap">
-              <table class="bk-table" id="rkPosTable" style="min-width:1560px">
-                <thead>
-                  <tr>
-                    <th class="frz c0" style="width:40px"><input type="checkbox" id="rkPosCheckAll" /></th>
-                    <th class="frz c1" style="width:44px">序号</th>
-                    <th style="width:150px">证券名称</th>
-                    <th style="width:80px">持仓方向</th>
-                    <th style="width:96px">成本价</th>
-                    <th style="width:96px">持仓均价</th>
-                    <th style="width:96px">持仓数量</th>
-                    <th style="width:126px">持仓市值</th>
-                    <th style="width:126px">持仓名本</th>
-                    <th style="width:120px">浮动盈亏</th>
-                    <th style="width:120px">持仓盈亏</th>
-                    <th style="width:126px">保证金占用</th>
-                    <th style="width:140px">单票维持担保比例</th>
-                    <th style="width:76px">操作</th>
-                  </tr>
-                </thead>
+              <table class="bk-table" id="rkPosTable" style="min-width:1720px">
+                <thead></thead>
                 <tbody></tbody>
               </table>
             </div>
@@ -3643,7 +3734,7 @@
                     <th style="width:96px">成交均价</th>
                     <th style="width:104px">算法类型</th>
                     <th style="width:96px">订单状态</th>
-                    <th style="width:96px">订单标识</th>
+                    <th style="width:104px">委托属性</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
@@ -3924,15 +4015,25 @@
             </select>
           </div>
           <div class="bk-field">
-            <span class="bk-label">委托价格</span>
+            <span class="bk-label">价格类型</span>
             <select class="bk-select" id="bkOrderPriceType"></select>
+          </div>
+          <div class="bk-field">
+            <span class="bk-label">实时价格</span>
+            <div class="rk-check-row">
+              <label><input type="checkbox" id="bkOrderPriceLive" />按行情实时取价</label>
+            </div>
+          </div>
+          <div class="bk-field" id="bkOrderTickField">
+            <span class="bk-label">偏离tick</span>
+            <input class="bk-input" id="bkOrderPriceTicks" inputmode="numeric" placeholder="±N" value="0" />
           </div>
           <div class="bk-field">
             <span class="bk-label">算法类型</span>
             <select class="bk-select" id="bkOrderAlgo"></select>
           </div>
           <div class="bk-field">
-            <span class="bk-label">预估金额</span>
+            <span class="bk-label">预估金额（币种）</span>
             <span class="bk-value em" id="bkOrderEstAmount">--</span>
           </div>
         </div>
@@ -4062,12 +4163,16 @@
             <span class="bk-label">风控状态</span>
             <select class="bk-select" id="rkRuleStatus"></select>
           </div>
-          <div class="bk-field wide">
+          <div class="bk-field">
+            <span class="bk-label">自动强平</span>
+            <div class="rk-check-row">
+              <label><input type="checkbox" id="rkRuleAutoClose" />触发后自动生成篮子并下单</label>
+            </div>
+          </div>
+          <div class="bk-field">
             <span class="bk-label">风控提示</span>
-            <div class="rk-check-row" id="rkRuleAlerts">
-              <label><input type="checkbox" value="弹框提示" checked />弹框提示</label>
-              <label><input type="checkbox" value="消息中心" checked />消息中心</label>
-              <label><input type="checkbox" value="声音提示" />声音提示</label>
+            <div class="rk-check-row">
+              <label><input type="checkbox" id="rkRuleAlert" checked /></label>
             </div>
           </div>
           <div class="bk-field">
@@ -4078,10 +4183,8 @@
             </div>
           </div>
         </div>
-        <div class="bk-hint" id="rkRuleHint"></div>
       </div>
       <footer class="bk-dialog-footer">
-        <span class="bk-count" id="rkRuleSummary"></span>
         <span class="bk-spacer"></span>
         <button class="bk-btn" data-bk-close="rkRuleModal" type="button">取消</button>
         <button class="bk-btn primary" id="rkRuleConfirm" type="button">确定</button>
@@ -4089,28 +4192,171 @@
     </div>
   </div>
 
-  <!-- 触发风控线弹框 -->
-  <div class="bk-modal confirm" id="rkTriggerModal" aria-hidden="true">
-    <div class="bk-dialog mid" role="dialog" aria-modal="true" aria-labelledby="rkTriggerTitle">
+  <!-- 多账户强平 -->
+  <div class="bk-modal" id="rkMultiBasketModal" aria-hidden="true">
+    <div class="bk-dialog" role="dialog" aria-modal="true" aria-labelledby="rkMbTitle">
       <header class="bk-dialog-header">
-        <span id="rkTriggerTitle">触发风控线</span>
-        <button class="bk-dialog-close" data-bk-close="rkTriggerModal" type="button" aria-label="关闭">×</button>
+        <span id="rkMbTitle">多账户强平</span>
+        <button class="bk-dialog-close" data-bk-close="rkMultiBasketModal" type="button" aria-label="关闭">×</button>
+      </header>
+      <div class="bk-dialog-body" style="padding:0">
+        <div class="rk-mb-split">
+          <div class="rk-mb-left" id="rkMbList"></div>
+          <div class="rk-mb-right">
+            <div class="bk-form-grid" id="rkMbForm" style="padding:8px 10px">
+              <div class="bk-field">
+                <span class="bk-label">篮子名称</span>
+                <input class="bk-input" id="rkMbName" />
+              </div>
+              <div class="bk-field">
+                <span class="bk-label">分配方式</span>
+                <input class="bk-input" id="rkMbAlloc" readonly />
+              </div>
+              <div class="bk-field" id="rkMbQtyField">
+                <span class="bk-label">篮子数量</span>
+                <input class="bk-input" id="rkMbQty" inputmode="numeric" placeholder="N(12,0)" />
+              </div>
+              <div class="bk-field" id="rkMbTotalField">
+                <span class="bk-label">总委托金额</span>
+                <input class="bk-input" id="rkMbTotal" inputmode="decimal" placeholder="N(12,4)" />
+              </div>
+              <div class="bk-field">
+                <span class="bk-label">委托方向</span>
+                <select class="bk-select" id="rkMbSide">
+                  <option value="按篮子配置">按篮子配置</option>
+                  <option value="全部买入">全部买入</option>
+                  <option value="全部卖出">全部卖出</option>
+                </select>
+              </div>
+              <div class="bk-field">
+                <span class="bk-label">价格类型</span>
+                <select class="bk-select" id="rkMbPriceType"></select>
+              </div>
+              <div class="bk-field">
+                <span class="bk-label">实时价格</span>
+                <div class="rk-check-row">
+                  <label><input type="checkbox" id="rkMbPriceLive" />按行情实时取价</label>
+                </div>
+              </div>
+              <div class="bk-field" id="rkMbTickField">
+                <span class="bk-label">偏离tick</span>
+                <input class="bk-input" id="rkMbPriceTicks" inputmode="numeric" placeholder="±N" value="0" />
+              </div>
+              <div class="bk-field">
+                <span class="bk-label">算法类型</span>
+                <select class="bk-select" id="rkMbAlgo"></select>
+              </div>
+              <div class="bk-field">
+                <span class="bk-label">预估金额（币种）</span>
+                <span class="bk-value em" id="rkMbEstAmount">--</span>
+              </div>
+              <div class="bk-field">
+                <span class="bk-label">委托属性</span>
+                <input class="bk-input" id="rkMbMark" value="强平委托" readonly />
+              </div>
+            </div>
+            <div class="bk-hint" id="rkMbHint"></div>
+            <div class="bk-table-wrap">
+              <table class="bk-table" id="rkMbTable" style="min-width:1620px">
+                <thead>
+                  <tr>
+                    <th class="frz c0" style="width:44px">序号</th>
+                    <th style="width:96px">业务类型</th>
+                    <th style="width:190px">资金账号名称</th>
+                    <th style="width:110px">交易账户</th>
+                    <th style="width:140px">框架名称</th>
+                    <th style="width:96px">订单类型</th>
+                    <th style="width:160px">标的代码</th>
+                    <th style="width:92px">委托方向</th>
+                    <th style="width:118px">开平标识</th>
+                    <th style="width:104px">价格类型</th>
+                    <th style="width:96px">委托价格</th>
+                    <th style="width:104px">委托数量</th>
+                    <th style="width:88px">权重(%)</th>
+                    <th style="width:104px">算法类型</th>
+                    <th style="width:60px">操作</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="bk-dialog-footer">
+        <span class="bk-count" id="rkMbSummary"></span>
+        <span class="bk-spacer"></span>
+        <button class="bk-btn" data-bk-close="rkMultiBasketModal" type="button">取消</button>
+        <button class="bk-btn" id="rkMbSendAll" type="button">一键下单</button>
+        <button class="bk-btn primary" id="rkMbSend" type="button">下单</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- 强平篮子默认字段配置 -->
+  <div class="bk-modal" id="rkLiqConfigModal" aria-hidden="true">
+    <div class="bk-dialog narrow" role="dialog" aria-modal="true" aria-labelledby="rkLiqCfgTitle">
+      <header class="bk-dialog-header">
+        <span id="rkLiqCfgTitle">强平篮子默认字段配置</span>
+        <button class="bk-dialog-close" data-bk-close="rkLiqConfigModal" type="button" aria-label="关闭">×</button>
       </header>
       <div class="bk-dialog-body">
-        <div class="bk-hint">以下交易账户在本次 MTM 后触发了风控线，请及时处置。点击行可直接定位到对应账户并下钻持仓。</div>
-        <div class="bk-detail-wrap">
-          <table class="bk-table" id="rkTriggerTable" style="min-width:900px">
+        <div class="bk-hint">批量强平生成篮子时，以下字段按此配置带入；委托方向选「自动」时按持仓方向推导（股票卖出、期货多头卖空头买）。</div>
+        <div class="bk-form-grid">
+          <div class="bk-field">
+            <span class="bk-label">订单类型</span>
+            <select class="bk-select" id="rkCfgOrderType"></select>
+          </div>
+          <div class="bk-field">
+            <span class="bk-label">委托方向</span>
+            <select class="bk-select" id="rkCfgSide"></select>
+          </div>
+          <div class="bk-field">
+            <span class="bk-label">价格类型</span>
+            <select class="bk-select" id="rkCfgPriceType"></select>
+          </div>
+          <div class="bk-field">
+            <span class="bk-label">算法类型</span>
+            <select class="bk-select" id="rkCfgAlgo"></select>
+          </div>
+        </div>
+        <div class="bk-section-title"><span>LIC / 网厅权限（演示开关）</span></div>
+        <div class="bk-hint">对应「风控 &gt; 风控监测 &gt; 各指标」的读写权限，无读写权限时该 sheet 的强平按钮置灰。</div>
+        <div class="rk-check-row" id="rkCfgLic" style="padding:2px 0 6px"></div>
+      </div>
+      <footer class="bk-dialog-footer">
+        <span class="bk-spacer"></span>
+        <button class="bk-btn" data-bk-close="rkLiqConfigModal" type="button">取消</button>
+        <button class="bk-btn primary" id="rkCfgConfirm" type="button">确定</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- 风控线导入 -->
+  <div class="bk-modal" id="rkImportModal" aria-hidden="true">
+    <div class="bk-dialog narrow" role="dialog" aria-modal="true" aria-labelledby="rkImportTitle">
+      <header class="bk-dialog-header">
+        <span id="rkImportTitle">导入风控线</span>
+        <button class="bk-dialog-close" data-bk-close="rkImportModal" type="button" aria-label="关闭">×</button>
+      </header>
+      <div class="bk-dialog-body">
+        <div class="bk-hint">请选择按「风控线导入模板.xls」填写的文件。模板列：资金账号名称/交易账户、风控线名称、风控阈值(%)、交易措施、自动强平、风控提示、风控颜色、风控状态。</div>
+        <div class="bk-field wide">
+          <span class="bk-label">选择文件</span>
+          <input type="file" id="rkImportFile" accept=".xls,.xlsx,.csv" class="bk-input" style="padding:3px" />
+        </div>
+        <div class="bk-detail-wrap" style="margin-top:8px">
+          <table class="bk-table" id="rkImportPreview" style="min-width:760px">
             <thead>
               <tr>
                 <th style="width:52px">序号</th>
-                <th style="width:112px">交易账户</th>
-                <th style="width:130px">客户名</th>
-                <th style="width:130px">风控指标</th>
-                <th style="width:100px">风控线</th>
-                <th style="width:96px">当前值</th>
-                <th style="width:88px">阈值</th>
-                <th style="width:88px">风控状态</th>
+                <th style="width:120px">交易账户</th>
+                <th style="width:100px">风控线名称</th>
+                <th style="width:88px">风控阈值</th>
                 <th style="width:100px">交易措施</th>
+                <th style="width:88px">自动强平</th>
+                <th style="width:88px">风控状态</th>
+                <th style="width:150px">校验结果</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -4118,11 +4364,16 @@
         </div>
       </div>
       <footer class="bk-dialog-footer">
+        <span class="bk-count" id="rkImportSummary">尚未选择文件</span>
         <span class="bk-spacer"></span>
-        <button class="bk-btn primary" data-bk-close="rkTriggerModal" type="button">我知道了</button>
+        <button class="bk-btn" data-bk-close="rkImportModal" type="button">取消</button>
+        <button class="bk-btn primary" id="rkImportConfirm" type="button">导入</button>
       </footer>
     </div>
   </div>
+
+  <!-- 触发风控线浮窗（悬停不消失，点击跳转） -->
+  <div class="rk-trigger-host" id="rkTriggerHost"></div>
 
   <!-- 资金监控：字段配置（母表 / 子表分别配置） -->
   <div class="bk-modal" id="fmFieldModal" aria-hidden="true">
@@ -4225,7 +4476,7 @@
         { label: "客户持仓", view: "position" },
         { label: "资金监控", view: "fundMonitor" }
       ],
-      risk: [{ label: "保证金监测", view: "riskMargin" }],
+      risk: [{ label: "风险监控", view: "riskMargin" }],
       config: [{ label: "篮子管理", view: "basketConfig" }],
       system: [
         { label: "系统设置", view: "system", systemPanel: "settings" },
@@ -5256,7 +5507,7 @@
 
       function orderOf(over) {
         const row = makeRow(over);
-        return Object.assign(row, { filledQty: 0, filledPrice: 0, status: "已报", mark: "强平" }, over || {});
+        return Object.assign(row, { filledQty: 0, filledPrice: 0, status: "已报", mark: "强平委托" }, over || {});
       }
 
       let runSeq = 0;
@@ -5744,7 +5995,7 @@
       });
 
       /* ---------- 篮子下单 ---------- */
-      const orderState = { name: "", alloc: ALLOC_QTY, rows: [], basketQty: 1, totalAmount: 0, sideMode: BY_BASKET, priceMode: BY_BASKET, algoMode: BY_BASKET, checked: new Set() };
+      const orderState = { name: "", alloc: ALLOC_QTY, rows: [], basketQty: 1, totalAmount: 0, sideMode: BY_BASKET, priceMode: BY_BASKET, algoMode: BY_BASKET, priceLive: false, priceTicks: 0, checked: new Set() };
       const orderBody = document.querySelector("#bkOrderTable tbody");
       const orderCheckAll = document.querySelector("#bkOrderCheckAll");
       const orderBasketQty = document.querySelector("#bkOrderBasketQty");
@@ -5752,9 +6003,18 @@
       const orderSide = document.querySelector("#bkOrderSide");
       const orderPriceType = document.querySelector("#bkOrderPriceType");
       const orderAlgo = document.querySelector("#bkOrderAlgo");
+      const orderPriceLive = document.querySelector("#bkOrderPriceLive");
+      const orderPriceTicks = document.querySelector("#bkOrderPriceTicks");
 
       orderPriceType.innerHTML = [BY_BASKET].concat(PRICE_TYPES.filter((p) => p !== "指定价")).map((p) => `<option value="${p}">${p}</option>`).join("");
       orderAlgo.innerHTML = [BY_BASKET].concat(ALGOS).map((a) => `<option value="${a}">${a}</option>`).join("");
+
+      /* 勾选实时价格后，委托价格按行情价再偏离 N 个 ticksize */
+      function applyTickOffset(row, live, ticks) {
+        const it = inst(row.code);
+        if (!live || !it || !row.price) return;
+        row.price = Number(Math.max(it.tick, row.price + it.tick * num(ticks)).toFixed(it.dp));
+      }
 
       function computeOrderRows() {
         const isWeight = orderState.alloc === ALLOC_WEIGHT;
@@ -5765,6 +6025,7 @@
           const res = resolvePrice(r.code, r.priceType, r.price);
           r.missing = res.missing || null;
           r.price = res.missing ? 0 : res.price;
+          applyTickOffset(r, orderState.priceLive, orderState.priceTicks);
           if (isWeight) {
             const amount = num(orderState.totalAmount) * num(r.weight) / 100;
             const raw = r.price > 0 ? amount / (r.price * mult) : 0;
@@ -5786,6 +6047,7 @@
         const isWeight = orderState.alloc === ALLOC_WEIGHT;
         document.querySelector("#bkOrderQtyField").style.display = isWeight ? "none" : "";
         document.querySelector("#bkOrderAmountField").style.display = isWeight ? "" : "none";
+        document.querySelector("#bkOrderTickField").style.display = orderState.priceLive ? "" : "none";
         const checkedRows = orderCheckedRows();
         const est = checkedRows.reduce((s, r) => s + num(r.estAmount), 0);
         document.querySelector("#bkOrderEstAmount").textContent = `${fmtAmount(est)} CNY`;
@@ -5801,7 +6063,7 @@
           isWeight
             ? '委托数量 = <span class="warn">总委托金额 × 权重 ÷（委托价格 × 合约乘数）</span>，按 minTradeUnit / lotSize 向下取整；'
             : '委托数量 = <span class="warn">明细委托数量 × 篮子数量</span>；',
-          '概览的委托方向 / 委托价格 / 算法类型改为非「按篮子配置」时，明细整列同步刷新。',
+          '概览的委托方向 / 价格类型 / 算法类型改为非「按篮子配置」时，明细整列同步刷新；勾选实时价格后委托价格按行情实时取价并偏离设定的 tick 数，明细价格不可手工改。',
           invalidCount ? `<span class="bad">当前有 ${invalidCount} 笔无效委托（数量为 0 或无行情价），下单时将不予发送。</span>` : ""
         ].join(" ");
         document.querySelector("#bkOrderSummary").textContent = `已勾选 ${checkedRows.length} / ${orderState.rows.length} 项`;
@@ -5824,7 +6086,7 @@
             <td>${selectCell("side", i, SIDES, r.side)}</td>
             <td>${r.offset}</td>
             <td>${selectCell("priceType", i, PRICE_TYPES, r.priceType)}</td>
-            <td>${numCell("price", i, r.missing ? "--" : fmtPrice(r.price, r.code), r.priceType !== "指定价")}</td>
+            <td>${numCell("price", i, r.missing ? "--" : fmtPrice(r.price, r.code), orderState.priceLive || r.priceType !== "指定价")}</td>
             <td>${numCell("baseQty", i, isWeight ? fmtQty(r.calcQty) : r.baseQty, isWeight)}</td>
             <td>${numCell("weight", i, isWeight ? num(r.weight).toFixed(2) : "--", !isWeight)}</td>
             <td>${selectCell("algo", i, ALGOS, r.algo)}</td>
@@ -5849,9 +6111,23 @@
         orderSide.value = BY_BASKET;
         orderPriceType.value = BY_BASKET;
         orderAlgo.value = BY_BASKET;
+        orderState.priceLive = false;
+        orderState.priceTicks = 0;
+        orderPriceLive.checked = false;
+        orderPriceTicks.value = "0";
         renderOrderRows();
         openModal("bkOrderModal");
       }
+
+      orderPriceLive.addEventListener("change", () => {
+        orderState.priceLive = orderPriceLive.checked;
+        renderOrderRows();
+      });
+
+      orderPriceTicks.addEventListener("input", () => {
+        orderState.priceTicks = Math.trunc(num(orderPriceTicks.value));
+        renderOrderRows();
+      });
 
       bindRowEditing(orderBody, () => orderState.rows, renderOrderRows);
 
@@ -5923,7 +6199,7 @@
         const invalidCount = checkedRows.length - valid.length;
         const text = `已勾选 <strong>${checkedRows.length}/${orderState.rows.length}</strong> 项，确定对已勾选项下单吗？`
           + (invalidCount ? `<br /><span style="color:#ff9a9a">其中 ${invalidCount} 笔为无效委托（委托数量 0），将不予发送。</span>` : "")
-          + `<br /><span style="color:#9ba1ae">预估金额 ${fmtAmount(valid.reduce((s, r) => s + num(r.estAmount), 0))} CNY，订单将携带「强平」标识，客户端不可撤单/改单。</span>`;
+          + `<br /><span style="color:#9ba1ae">预估金额 ${fmtAmount(valid.reduce((s, r) => s + num(r.estAmount), 0))} CNY，委托属性为「强平委托」，customer 端隐藏撤单按钮，仅 trader 端可撤单。</span>`;
         askConfirm("篮子下单二次确认", text, sendBasketOrder);
       });
 
@@ -5940,7 +6216,7 @@
           algoMode: orderState.algoMode,
           createdAt: nowText(),
           stoppedAt: "",
-          orders: valid.map((r) => Object.assign({}, r, { qty: r.calcQty, filledQty: 0, filledPrice: 0, status: "已报", mark: "强平" }))
+          orders: valid.map((r) => Object.assign({}, r, { qty: r.calcQty, filledQty: 0, filledPrice: 0, status: "已报", mark: "强平委托" }))
         };
         run.estAmount = run.orders.reduce((s, o) => s + o.price * (inst(o.code)?.mult || 1) * o.qty, 0);
         runs.unshift(run);
@@ -6147,14 +6423,54 @@
         tab?.click();
       }
 
-      /* 供风控模块（保证金监测-强平）复用：生成篮子后直接进入篮子下单流程 */
+      /* 强平篮子直接落库为运行记录，供风控模块的多账户强平与自动强平复用 */
+      function submitRun(basket) {
+        const orders = basket.rows
+          .map((r) => Object.assign({}, r, { qty: num(r.calcQty ?? r.qty), filledQty: 0, filledPrice: 0, status: "已报", mark: "强平委托" }))
+          .filter((o) => o.qty > 0);
+        if (!orders.length) return null;
+        const run = {
+          id: ++runSeq,
+          name: basket.name,
+          alloc: basket.alloc,
+          basketQty: basket.alloc === ALLOC_QTY ? num(basket.basketQty || 1) : 0,
+          totalAmount: basket.alloc === ALLOC_WEIGHT ? num(basket.totalAmount) : 0,
+          sideMode: BY_BASKET, priceMode: BY_BASKET, algoMode: BY_BASKET,
+          createdAt: nowText(), stoppedAt: "", orders
+        };
+        run.estAmount = run.orders.reduce((s, o) => s + o.price * (inst(o.code)?.mult || 1) * o.qty, 0);
+        runs.unshift(run);
+        activeRunId = run.id;
+        renderRuns();
+        return run;
+      }
+
+      /* 供风控模块（风险监控-强平）复用：生成篮子后直接进入篮子下单流程 */
       window.omsBasket = {
         openOrder,
         makeRow,
+        submitRun,
+        gotoBasketTrade,
         instrumentOf: inst,
+        resolvePrice,
+        applyTickOffset,
+        bindRowEditing,
+        selectCell,
+        symbolCell,
+        numCell,
         INSTRUMENTS,
         ALLOC_QTY,
         ALLOC_WEIGHT,
+        BY_BASKET,
+        ORDER_TYPES,
+        PRICE_TYPES,
+        ALGOS,
+        SIDES,
+        OFFSETS,
+        BIZ_TYPES,
+        FUNDS,
+        ACCOUNTS,
+        HEDGES,
         toast,
         askConfirm,
         nowText
@@ -6174,21 +6490,35 @@
       const STATUS_ORDER = { "正常": 0, "预警": 1, "追保": 2, "强平": 3 };
       const STATUS_COLOR = { "正常": "#2a7a5f", "预警": "#f3a932", "追保": "#ff8c1a", "强平": "#e05252" };
       const SWATCHES = ["#e05252", "#ff8c1a", "#f3a932", "#2f80ff", "#2a7a5f", "#9b59b6"];
-      /* 市价单权限：无权限时下单面板默认限价单，并按 最新价 ±1 ticksize 定价 */
-      const MARKET_ORDER_LIC = { "股票": false, "期货": true, "债券": false };
 
       const COLUMNS = {
-        "维持担保比例": ["序号", "资金账号名称", "交易对手名称", "交易账户", "客户名", "资金账户", "净资产", "交易保证金", "超额保证金", "持仓市值", "持仓名本", "维持担保比例", "风控状态", "交易措施", "操作"],
-        "剩余流动性占比": ["序号", "资金账号名称", "交易对手名称", "交易账户", "客户名", "资金账户", "保证金", "交易保证金", "超额保证金", "持仓市值", "持仓名本", "剩余流动性占比", "风控状态", "交易措施", "操作"],
-        "保证金损耗比例": ["序号", "资金账号名称", "交易对手名称", "交易账户", "客户名", "资金账户", "保证金", "持仓市值", "总盈亏", "保证金损耗比例", "风控状态", "交易措施", "操作"]
+        "维持担保比例": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "净资产", "交易保证金", "超额保证金", "待追保金额", "持仓市值", "持仓名本", "维持担保比例", "风控状态", "交易状态", "强平状态", "自动强平", "操作"],
+        "剩余流动性占比": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "保证金", "交易保证金", "超额保证金", "待追保金额", "持仓市值", "持仓名本", "剩余流动性占比", "风控状态", "交易状态", "自动强平", "操作"],
+        "保证金损耗比例": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "保证金", "持仓市值", "总盈亏", "保证金损耗比例", "待追保金额", "风控状态", "交易状态", "自动强平", "操作"]
       };
       const WIDTH = {
-        "序号": 44, "资金账号名称": 196, "交易对手名称": 140, "交易账户": 112, "客户名": 130, "资金账户": 112,
-        "净资产": 132, "保证金": 132, "交易保证金": 132, "超额保证金": 132, "持仓市值": 132, "持仓名本": 132,
-        "总盈亏": 132, "维持担保比例": 118, "剩余流动性占比": 124, "保证金损耗比例": 124,
-        "风控状态": 88, "交易措施": 92, "操作": 110
+        "勾选": 40, "序号": 44, "资金账号名称": 196, "交易对手名称": 140, "交易账户": 112, "客户名": 130,
+        "净资产": 132, "保证金": 132, "交易保证金": 132, "超额保证金": 132, "待追保金额": 132,
+        "持仓市值": 132, "持仓名本": 132, "总盈亏": 132,
+        "维持担保比例": 118, "剩余流动性占比": 124, "保证金损耗比例": 124,
+        "风控状态": 88, "交易状态": 92, "强平状态": 88, "自动强平": 80, "操作": 110
       };
-      const AMOUNT_COLS = new Set(["净资产", "保证金", "交易保证金", "超额保证金", "持仓市值", "持仓名本", "总盈亏"]);
+
+      /* 持仓下钻列：单票维持担保比例仅在维持担保比例 sheet 出现 */
+      const POS_COLUMNS = ["勾选", "序号", "证券名称", "持仓方向", "成本价", "持仓均价", "可用数量", "持仓数量", "持仓市值", "持仓名本", "交易保证金", "浮动盈亏", "持仓盈亏", "单票维持担保比例", "操作"];
+      const POS_WIDTH = {
+        "勾选": 40, "序号": 44, "证券名称": 160, "持仓方向": 80, "成本价": 96, "持仓均价": 96,
+        "可用数量": 100, "持仓数量": 100, "持仓市值": 126, "持仓名本": 126, "交易保证金": 126,
+        "浮动盈亏": 120, "持仓盈亏": 120, "单票维持担保比例": 140, "操作": 76
+      };
+
+      const CLOSE_STATUS = { NONE: "未强平", DOING: "强平中", DONE: "已强平" };
+      /* LIC / 网厅权限：无读写权限时该 sheet 的强平按钮置灰 */
+      const LIC = {
+        "维持担保比例": { write: true },
+        "剩余流动性占比": { write: true },
+        "保证金损耗比例": { write: false }
+      };
 
       const num = (v) => Number(String(v ?? "").replace(/,/g, "")) || 0;
       const fmtAmount = (v) => num(v).toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -6205,9 +6535,9 @@
           framework: "收益互换标准框架", marginMode: "融资额度", leverage: 1.5,
           nav: 2026000, marginUsed: 1300000, margin: 1300000, totalPnl: -280000,
           positions: [
-            { code: "688525.SH", dir: "多头", cost: 278.7768, avg: 285.00, qty: 2000 },
-            { code: "001215.SZ", dir: "多头", cost: 47.7995, avg: 48.50, qty: 17300 },
-            { code: "300252.SZ", dir: "多头", cost: 15.6708, avg: 15.90, qty: 18000 }
+            { code: "688525.SH", dir: "多头", cost: 278.7768, avg: 285.00, qty: 2000, avail: 2000 },
+            { code: "001215.SZ", dir: "多头", cost: 47.7995, avg: 48.50, qty: 17300, avail: 15000 },
+            { code: "300252.SZ", dir: "多头", cost: 15.6708, avg: 15.90, qty: 18000, avail: 18000 }
           ]
         },
         {
@@ -6261,12 +6591,12 @@
       let ruleSeq = 0;
       const rules = [];
 
-      function seedRules(ids, metric, ruleName, threshold, status, measure) {
+      function seedRules(ids, metric, ruleName, threshold, status, measure, autoClose) {
         ids.forEach((id) => {
           const acc = accounts.find((a) => a.id === id);
           rules.push({
             id: ++ruleSeq, metric, ruleName, direction: DIRECTION[metric], threshold, status, measure,
-            color: STATUS_COLOR[status], alerts: ["弹框提示", "消息中心"],
+            autoClose: !!autoClose, color: STATUS_COLOR[status], alert: true,
             fundName: acc.fundName, counterparty: acc.counterparty, tradeAccount: acc.tradeAccount
           });
         });
@@ -6275,6 +6605,8 @@
       seedRules([1, 2, 3, 4, 5], "维持担保比例", "预警线", 150, "预警", "限制买入");
       seedRules([1, 2, 3, 5], "维持担保比例", "追保线", 140, "追保", "限制买入");
       seedRules([1, 2, 3, 5], "维持担保比例", "强平线", 130, "强平", "禁止交易");
+      /* 沈冰2 当前 210%，未触发；配置为自动强平，用于演示触发即自动生成篮子并下单 */
+      seedRules([4], "维持担保比例", "强平线", 130, "强平", "禁止交易", true);
       seedRules([1, 2, 3, 5], "剩余流动性占比", "预警线", 60, "预警", "限制买入");
       seedRules([1, 2, 3, 5], "剩余流动性占比", "追保线", 45, "追保", "限制买入");
       seedRules([1, 2, 3, 5], "剩余流动性占比", "强平线", 35, "强平", "禁止交易");
@@ -6292,6 +6624,7 @@
           const value = p.qty * last * mult;
           return Object.assign({}, p, {
             name: it?.name || p.code, last, mult,
+            avail: p.avail == null ? p.qty : p.avail,
             assetType: it?.biz === "期货" ? "期货" : "股票",
             value, notional: p.qty * p.avg * mult,
             floatPnl: (last - p.avg) * p.qty * mult * short,
@@ -6342,33 +6675,58 @@
       const table = el("rkTable");
       const thead = table.querySelector("thead");
       const tbody = table.querySelector("tbody");
-      const posBody = document.querySelector("#rkPosTable tbody");
-      const posCheckAll = el("rkPosCheckAll");
+      const posTable = document.querySelector("#rkPosTable");
+      const posHead = posTable.querySelector("thead");
+      const posBody = posTable.querySelector("tbody");
+      const HAS_BASKET_MODULE = !!document.querySelector("#view-basketConfig");
       let activeMetric = "维持担保比例";
       let statusFilter = "";
       let activeAccountId = accounts[0].id;
       let posChecked = new Set();
+      let accChecked = new Set();
       let mtmTime = "2026-07-28 15:20:06";
       let pendingFlashId = null;
+      let filters = { customer: "", fundName: "", tradeAccount: "" };
+      let lastOrder = [];
+      let keepOrder = false;
+      const closeStatus = {};
+      const liqConfig = { orderType: "限价单", side: "自动", priceType: "最新价", algo: "无算法" };
+
+      const canLiquidate = () => !!LIC[activeMetric].write;
 
       function statusPill(status, color) {
         return `<span class="rk-status-pill" style="background:${color}">${status}</span>`;
       }
 
+      /* 待追保金额：未触发风控线时为 0，触发时按当前触发阈值反算需追加的保证金 */
+      function callAmount(metric, acc, d, rule) {
+        if (!rule) return 0;
+        const t = rule.threshold / 100;
+        if (metric === "维持担保比例") return t * d.posValue - acc.nav;
+        if (metric === "剩余流动性占比") return t === 1 ? 0 : ((1 - t) * acc.nav - acc.marginUsed) / (t - 1);
+        return t === 0 ? 0 : (Math.abs(Math.min(0, acc.totalPnl)) - t * acc.margin) / t;
+      }
+
+      const autoCloseOf = (acc) => rulesOf(acc, activeMetric).some((r) => r.autoClose);
+
       function cellFor(col, snap, index) {
         const { acc, d } = snap;
         const evalResult = snap.status[activeMetric];
         switch (col) {
-          case "序号": return `<td class="frz c0">${index + 1}</td>`;
+          case "勾选": return `<td class="frz c0"><input type="checkbox" data-acc="${acc.id}"${accChecked.has(acc.id) ? " checked" : ""} /></td>`;
+          case "序号": return `<td class="frz c1">${index + 1}</td>`;
           case "资金账号名称": return `<td style="text-align:left">${acc.fundName}</td>`;
           case "交易对手名称": return `<td>${acc.counterparty}</td>`;
           case "交易账户": return `<td>${acc.tradeAccount}</td>`;
           case "客户名": return `<td>${acc.customer}</td>`;
-          case "资金账户": return `<td>${acc.fundAccount}</td>`;
           case "净资产": return `<td class="num">${fmtAmount(acc.nav)}</td>`;
           case "保证金": return `<td class="num">${fmtAmount(acc.margin)}</td>`;
           case "交易保证金": return `<td class="num">${fmtAmount(d.tradeMargin)}</td>`;
           case "超额保证金": return `<td class="num" style="color:${d.excess >= 0 ? "#f1f3f8" : "#ff8f8f"}">${fmtAmount(d.excess)}</td>`;
+          case "待追保金额": {
+            const v = callAmount(activeMetric, acc, d, evalResult.rule);
+            return `<td class="num" style="color:${v > 0 ? "#ff9a9a" : "#f1f3f8"}">${fmtAmount(Math.max(0, v))}</td>`;
+          }
           case "持仓市值": return `<td class="num">${fmtAmount(d.posValue)}</td>`;
           case "持仓名本": return `<td class="num">${fmtAmount(d.posNotional)}</td>`;
           case "总盈亏": return `<td class="num" style="color:${acc.totalPnl >= 0 ? "#ff5a0a" : "#14a58f"}">${fmtAmount(acc.totalPnl)}</td>`;
@@ -6377,40 +6735,91 @@
           case "保证金损耗比例":
             return `<td class="num" style="color:${evalResult.status === "正常" ? "#f1f3f8" : evalResult.color};font-weight:700">${pct(d.metrics[col])}</td>`;
           case "风控状态": return `<td>${statusPill(evalResult.status, evalResult.color)}</td>`;
-          case "交易措施": return `<td>${evalResult.rule ? evalResult.rule.measure : "--"}</td>`;
+          case "交易状态": return `<td>${evalResult.rule ? evalResult.rule.measure : "正常"}</td>`;
+          case "强平状态": return `<td>${closeStatus[acc.id] || CLOSE_STATUS.NONE}</td>`;
+          case "自动强平": return `<td>${autoCloseOf(acc) ? "是" : "否"}</td>`;
           case "操作": return `<td><div class="ops"><button class="bk-link" data-act="edit" type="button">编辑</button><button class="bk-link danger" data-act="del" type="button">删除</button></div></td>`;
           default: return `<td>--</td>`;
         }
       }
 
+      function matchFilters(snap) {
+        const { acc } = snap;
+        const hit = (v, kw) => !kw || String(v).toLowerCase().includes(kw.toLowerCase());
+        return hit(acc.customer, filters.customer)
+          && hit(acc.fundName, filters.fundName)
+          && hit(acc.tradeAccount, filters.tradeAccount);
+      }
+
+      function riskSort(a, b) {
+        const dir = DIRECTION[activeMetric];
+        const sa = STATUS_ORDER[a.status[activeMetric].status];
+        const sb = STATUS_ORDER[b.status[activeMetric].status];
+        if (sa !== sb) return sb - sa;
+        const va = a.d.metrics[activeMetric];
+        const vb = b.d.metrics[activeMetric];
+        if (va === null) return 1;
+        if (vb === null) return -1;
+        /* 低于类指标数值越小风险越高，高于类相反 */
+        return dir === "低于" ? va - vb : vb - va;
+      }
+
       function visibleSnapshots() {
         const list = accounts.map(snapshot);
-        const dir = DIRECTION[activeMetric];
-        list.sort((a, b) => {
-          const sa = STATUS_ORDER[a.status[activeMetric].status];
-          const sb = STATUS_ORDER[b.status[activeMetric].status];
-          if (sa !== sb) return sb - sa;
-          const va = a.d.metrics[activeMetric];
-          const vb = b.d.metrics[activeMetric];
-          if (va === null) return 1;
-          if (vb === null) return -1;
-          /* 低于类指标数值越小风险越高，高于类相反 */
-          return dir === "低于" ? va - vb : vb - va;
-        });
-        return statusFilter ? list.filter((s) => s.status[activeMetric].status === statusFilter) : list;
+        if (keepOrder && lastOrder.length) {
+          /* 无感刷新：MTM 后保持上一次的行顺序，避免数值跳动导致整表重排 */
+          const idx = (id) => {
+            const i = lastOrder.indexOf(id);
+            return i < 0 ? Number.MAX_SAFE_INTEGER : i;
+          };
+          list.sort((a, b) => idx(a.acc.id) - idx(b.acc.id));
+        } else {
+          list.sort(riskSort);
+        }
+        lastOrder = list.map((x) => x.acc.id);
+        return list
+          .filter(matchFilters)
+          .filter((s) => !statusFilter || s.status[activeMetric].status === statusFilter);
       }
 
       function renderOverview(all) {
-        el("rkTotalNav").textContent = fmtAmount(all.reduce((s, x) => s + x.acc.nav, 0));
-        el("rkTotalExcess").textContent = fmtAmount(all.reduce((s, x) => s + x.d.excess, 0));
         el("rkMtmTime").value = mtmTime;
         const counts = {};
         STATUSES.forEach((s) => { counts[s] = 0; });
         all.forEach((x) => { counts[x.status[activeMetric].status] += 1; });
         el("rkStatusCards").innerHTML = STATUSES.map((s) => `
           <button class="rk-status-card${statusFilter === s ? " active" : ""}" data-status="${s}" type="button">
-            <span class="dot" style="background:${STATUS_COLOR[s]}"></span>${s} <strong>${counts[s]}</strong> 户
+            ${s} <strong>${counts[s]}</strong> 户
           </button>`).join("");
+      }
+
+      function renderToolbar() {
+        const liqOk = canLiquidate();
+        const batchBtn = el("rkBatchCloseAcc");
+        batchBtn.disabled = !accChecked.size || !liqOk;
+        batchBtn.title = liqOk ? "" : `当前无「风控 > 风控监测 > ${activeMetric}」读写权限，强平已禁用`;
+        el("rkDelRule").disabled = !accChecked.size;
+        el("rkAccSummary").innerHTML = accChecked.size
+          ? `已勾选 <b style="color:#fff">${accChecked.size}</b> 个账户`
+          : "未勾选账户";
+      }
+
+      /* 勾选仅刷新汇总与全选态，避免整表重绘打断连续勾选 */
+      function syncAccSelection() {
+        renderToolbar();
+        const checkAll = el("rkAccCheckAll");
+        const ids = [...tbody.querySelectorAll("tr[data-id]")].map((tr) => Number(tr.dataset.id));
+        if (checkAll) checkAll.checked = ids.length > 0 && ids.every((id) => accChecked.has(id));
+      }
+
+      function syncPosSelection() {
+        const snap = currentSnap();
+        if (!snap) return;
+        const picked = snap.d.posList.filter((p) => posChecked.has(p.code));
+        el("rkPosSummary").textContent = `共 ${snap.d.posList.length} 条`;
+        el("rkBatchClose").disabled = picked.length === 0 || !canLiquidate();
+        const checkAll = el("rkPosCheckAll");
+        if (checkAll) checkAll.checked = picked.length === snap.d.posList.length;
       }
 
       function renderList() {
@@ -6418,8 +6827,13 @@
         renderOverview(all);
         const cols = COLUMNS[activeMetric];
         table.style.minWidth = `${cols.reduce((s, c) => s + WIDTH[c], 0)}px`;
-        thead.innerHTML = `<tr>${cols.map((c) => `<th${c === "序号" ? ' class="frz c0"' : ""} style="width:${WIDTH[c]}px">${c}</th>`).join("")}</tr>`;
+        thead.innerHTML = `<tr>${cols.map((c) => {
+          const frz = c === "勾选" ? ' class="frz c0"' : c === "序号" ? ' class="frz c1"' : "";
+          const inner = c === "勾选" ? '<input type="checkbox" id="rkAccCheckAll" />' : c;
+          return `<th${frz} style="width:${WIDTH[c]}px">${inner}</th>`;
+        }).join("")}</tr>`;
         const items = visibleSnapshots();
+        renderToolbar();
         if (!items.length) {
           tbody.innerHTML = `<tr class="empty-row"><td colspan="${cols.length}">暂无符合条件的交易账户</td></tr>`;
           renderDrill(null);
@@ -6433,65 +6847,68 @@
           return `<tr class="rk-row${isActive ? " selected" : ""}${flash}${mute}" data-id="${snap.acc.id}">${cols.map((c) => cellFor(c, snap, i)).join("")}</tr>`;
         }).join("");
         pendingFlashId = null;
+        const checkAll = el("rkAccCheckAll");
+        if (checkAll) checkAll.checked = items.length > 0 && items.every((x) => accChecked.has(x.acc.id));
         renderDrill(items.find((x) => x.acc.id === activeAccountId) || null);
       }
 
       /* ---------- 持仓下钻 ---------- */
+      function posColumns() {
+        return POS_COLUMNS.filter((c) => c !== "单票维持担保比例" || activeMetric === "维持担保比例");
+      }
+
       function renderDrill(snap) {
-        const strip = el("rkFundStrip");
+        const cols = posColumns();
+        posTable.style.minWidth = `${cols.reduce((s, c) => s + POS_WIDTH[c], 0)}px`;
+        posHead.innerHTML = `<tr>${cols.map((c) => {
+          const frz = c === "勾选" ? ' class="frz c0"' : c === "序号" ? ' class="frz c1"' : "";
+          const inner = c === "勾选" ? '<input type="checkbox" id="rkPosCheckAll" />' : c;
+          return `<th${frz} style="width:${POS_WIDTH[c]}px">${inner}</th>`;
+        }).join("")}</tr>`;
+        const liqOk = canLiquidate();
+        const batchBtn = el("rkBatchClose");
+        batchBtn.title = liqOk ? "" : `当前无「风控 > 风控监测 > ${activeMetric}」读写权限，强平已禁用`;
+
         if (!snap) {
-          strip.textContent = "请选择账户";
-          posBody.innerHTML = `<tr class="empty-row"><td colspan="14">请选择账户</td></tr>`;
+          posBody.innerHTML = `<tr class="empty-row"><td colspan="${cols.length}">请选择账户</td></tr>`;
           el("rkPosTitle").textContent = "持仓下钻";
           el("rkPosSummary").textContent = "点击上方任一账户行下钻持仓";
-          el("rkBatchClose").disabled = true;
+          batchBtn.disabled = true;
           return;
         }
         const { acc, d } = snap;
-        const evalResult = snap.status[activeMetric];
         el("rkPosTitle").textContent = `持仓下钻 — ${acc.tradeAccount}（${acc.customer}）`;
-        strip.innerHTML = [
-          `实际资金账号 <b>${acc.realFund}</b>`,
-          `保证金模式 <b>${acc.marginMode}${acc.marginMode === "融资额度" ? `（杠杆 ${acc.leverage}）` : ""}</b>`,
-          `净资产 <b>${fmtAmount(acc.nav)}</b>`,
-          `交易保证金 <b>${fmtAmount(d.tradeMargin)}</b>`,
-          `超额保证金 <b>${fmtAmount(d.excess)}</b>`,
-          `持仓市值 <b>${fmtAmount(d.posValue)}</b>`,
-          `持仓名本 <b>${fmtAmount(d.posNotional)}</b>`,
-          `${activeMetric} <b style="color:${evalResult.color}">${pct(d.metrics[activeMetric])}</b>`,
-          `风控状态 ${statusPill(evalResult.status, evalResult.color)}`,
-          `交易措施 <b>${evalResult.rule ? evalResult.rule.measure : "--"}</b>`
-        ].join("");
 
         if (!d.posList.length) {
-          posBody.innerHTML = `<tr class="empty-row"><td colspan="14">该账户暂无持仓（开户后无市值，风控线不触发）</td></tr>`;
+          posBody.innerHTML = `<tr class="empty-row"><td colspan="${cols.length}">该账户暂无持仓（开户后无市值，风控线不触发）</td></tr>`;
           el("rkPosSummary").textContent = "共 0 条";
-          el("rkBatchClose").disabled = true;
-          posCheckAll.checked = false;
+          batchBtn.disabled = true;
           return;
         }
         posBody.innerHTML = d.posList.map((p, i) => `
-          <tr data-code="${p.code}">
-            <td class="frz c0"><input type="checkbox" data-pos="${p.code}"${posChecked.has(p.code) ? " checked" : ""} /></td>
-            <td class="frz c1">${i + 1}</td>
-            <td style="text-align:left">${p.code} ${p.name}</td>
-            <td><span class="bk-tag ${p.dir === "多头" ? "side-buy" : "side-sell"}">${p.dir}</span></td>
-            <td class="num">${fmtPrice(p.cost, p.code)}</td>
-            <td class="num">${fmtPrice(p.avg, p.code)}</td>
-            <td class="num">${fmtQty(p.qty)}</td>
-            <td class="num">${fmtAmount(p.value)}</td>
-            <td class="num">${fmtAmount(p.notional)}</td>
-            <td class="num" style="color:${p.floatPnl >= 0 ? "#ff5a0a" : "#14a58f"}">${fmtAmount(p.floatPnl)}</td>
-            <td class="num" style="color:${p.posPnl >= 0 ? "#ff5a0a" : "#14a58f"}">${fmtAmount(p.posPnl)}</td>
-            <td class="num">${fmtAmount(p.marginUsed)}</td>
-            <td class="num">${pct(p.singleRatio)}</td>
-            <td><button class="bk-link danger" data-act="close" data-code="${p.code}" type="button">强平</button></td>
-          </tr>`).join("");
-        const checkedCount = d.posList.filter((p) => posChecked.has(p.code)).length;
-        const checkedValue = d.posList.filter((p) => posChecked.has(p.code)).reduce((s, p) => s + p.value, 0);
-        el("rkPosSummary").innerHTML = `共 ${d.posList.length} 条，已勾选 <b style="color:#fff">${checkedCount}</b> 条，勾选市值 ${fmtAmount(checkedValue)}`;
-        el("rkBatchClose").disabled = checkedCount === 0;
-        posCheckAll.checked = checkedCount === d.posList.length;
+          <tr data-code="${p.code}">${cols.map((c) => posCellFor(c, p, i, liqOk)).join("")}</tr>`).join("");
+        syncPosSelection();
+      }
+
+      function posCellFor(col, p, index, liqOk) {
+        switch (col) {
+          case "勾选": return `<td class="frz c0"><input type="checkbox" data-pos="${p.code}"${posChecked.has(p.code) ? " checked" : ""} /></td>`;
+          case "序号": return `<td class="frz c1">${index + 1}</td>`;
+          case "证券名称": return `<td style="text-align:left">${p.code} ${p.name}</td>`;
+          case "持仓方向": return `<td><span class="bk-tag ${p.dir === "多头" ? "side-buy" : "side-sell"}">${p.dir}</span></td>`;
+          case "成本价": return `<td class="num">${fmtPrice(p.cost, p.code)}</td>`;
+          case "持仓均价": return `<td class="num">${fmtPrice(p.avg, p.code)}</td>`;
+          case "可用数量": return `<td class="num">${fmtQty(p.avail)}</td>`;
+          case "持仓数量": return `<td class="num">${fmtQty(p.qty)}</td>`;
+          case "持仓市值": return `<td class="num">${fmtAmount(p.value)}</td>`;
+          case "持仓名本": return `<td class="num">${fmtAmount(p.notional)}</td>`;
+          case "交易保证金": return `<td class="num">${fmtAmount(p.marginUsed)}</td>`;
+          case "浮动盈亏": return `<td class="num" style="color:${p.floatPnl >= 0 ? "#ff5a0a" : "#14a58f"}">${fmtAmount(p.floatPnl)}</td>`;
+          case "持仓盈亏": return `<td class="num" style="color:${p.posPnl >= 0 ? "#ff5a0a" : "#14a58f"}">${fmtAmount(p.posPnl)}</td>`;
+          case "单票维持担保比例": return `<td class="num">${pct(p.singleRatio)}</td>`;
+          case "操作": return `<td><button class="bk-link danger" data-act="close" data-code="${p.code}" type="button"${liqOk ? "" : " disabled"}>强平</button></td>`;
+          default: return `<td>--</td>`;
+        }
       }
 
       function currentSnap() {
@@ -6499,106 +6916,230 @@
         return acc ? snapshot(acc) : null;
       }
 
-      /* ---------- 单票强平：跳转下单面板并回填要素 ---------- */
-      function fillOrderTicket(payload) {
-        const isFutures = payload.assetType === "期货";
-        document.querySelector('.nav-item[data-view="order"]').click();
-        const label = isFutures ? "期货交易" : "证券交易";
-        const tab = [...document.querySelectorAll(".top-subnav .subnav-item")].find((b) => b.textContent.trim() === label);
-        if (tab) tab.click();
-
-        const sheet = document.querySelector(`#view-order .order-sheet[data-order-sheet-panel="${isFutures ? "futures" : "normal"}"]`);
-        if (!sheet) return;
-        const rows = [...sheet.querySelectorAll(".form-row")];
-        const setControl = (labelText, value) => {
-          const row = rows.find((r) => r.querySelector(".label")?.textContent.includes(labelText));
-          const control = row?.querySelector(".control");
-          if (control) control.innerHTML = `${value} <span class="chevron">⌄</span>`;
-        };
-
-        setControl("交易账户", `${payload.tradeAccount}（${payload.realFund}）`);
-        setControl("对冲渠道", '<span class="placeholder">--</span>');
-        setControl("券池编号", '<span class="placeholder">--</span>');
-        setControl("订单类型", payload.orderType);
-        setControl("标的代码", `${payload.code} ${payload.name}`);
-        setControl("订单模式", payload.orderMode);
-
-        sheet.querySelectorAll(".side-btn").forEach((btn) => {
-          btn.classList.toggle("active", btn.dataset.side === payload.side);
-        });
-        const offsetInput = sheet.querySelector('input[name="futures-offset"][value="close"]');
-        if (isFutures && offsetInput) offsetInput.checked = true;
-
-        const priceValue = sheet.querySelector(".price-value");
-        if (priceValue) priceValue.textContent = payload.price.toFixed(instOf(payload.code)?.dp ?? 2);
-        const quantityValue = sheet.querySelector(".quantity-value");
-        if (quantityValue) quantityValue.textContent = String(payload.qty);
-        const availableLabel = sheet.querySelector(".available-label");
-        if (availableLabel) availableLabel.textContent = payload.side === "sell" ? "可卖数量" : "可买平";
-        const availableQty = sheet.querySelector(".available-qty");
-        if (availableQty) availableQty.textContent = fmtQty(payload.qty);
-
-        const ticket = sheet.closest(".ticket");
-        if (ticket) {
-          ticket.style.transition = "box-shadow .3s";
-          ticket.style.boxShadow = "0 0 0 2px #2f80ff";
-          setTimeout(() => { ticket.style.boxShadow = ""; }, 2200);
-        }
-      }
-
+      /* ---------- 单票强平：同样走强平篮子页面 ---------- */
       function closeSingle(code) {
+        if (!canLiquidate()) return B.toast(`当前无「${activeMetric}」读写权限，强平已禁用`, "error");
         const snap = currentSnap();
         const p = snap?.d.posList.find((x) => x.code === code);
         if (!p) return;
-        const it = instOf(code);
-        const hasMarket = MARKET_ORDER_LIC[p.assetType];
-        const orderType = hasMarket ? "市价单" : "限价单";
-        /* 股票/可转债/公募基金卖出；期货多头卖、空头买；限价单价格 多头 最新价-1tick、空头 最新价+1tick */
-        const isLong = p.dir === "多头";
-        const side = p.assetType === "期货" ? (isLong ? "sell" : "buy") : "sell";
-        const price = hasMarket ? it.last : Number((it.last + (isLong ? -it.tick : it.tick)).toFixed(it.dp));
-        fillOrderTicket({
-          assetType: p.assetType, code, name: p.name, qty: p.qty, side, price, orderType,
-          orderMode: "LowTouch", tradeAccount: snap.acc.tradeAccount, realFund: snap.acc.realFund
-        });
-        B.toast(`已跳转${p.assetType === "期货" ? "期货" : "证券"}交易下单面板并带入 ${code} 强平要素（${orderType}、${side === "sell" ? "卖出" : "买入"}、${fmtQty(p.qty)}），请确认后下单`, "ok");
+        if (!HAS_BASKET_MODULE) return B.toast("未开通篮子管理，无法生成强平篮子", "error");
+        openMultiBasket([buildLiqBasket(snap, [p], "数量")]);
       }
 
-      /* ---------- 批量强平：生成篮子并进入篮子下单 ---------- */
-      function closeBatch(mode) {
-        const snap = currentSnap();
-        if (!snap) return;
-        const picked = snap.d.posList.filter((p) => posChecked.has(p.code));
-        if (!picked.length) return B.toast("请先勾选需要强平的持仓", "error");
-        if (picked.length === 1) {
-          B.toast("仅勾选 1 条持仓，按单票强平处理", "info");
-          return closeSingle(picked[0].code);
-        }
+      /* ---------- 强平篮子生成 ---------- */
+      function stamp() {
+        return B.nowText().replace(/[-: ]/g, "");
+      }
+
+      /* 篮子名称：强平_资金账号名称或交易账户_YYYYMMDDHHMMSS */
+      function buildLiqBasket(snap, picked, mode) {
         const byWeight = mode === "市值";
         const totalValue = picked.reduce((s, p) => s + p.value, 0);
         const rows = picked.map((p) => {
           const isLong = p.dir === "多头";
-          const weight = byWeight ? Number(((p.value / totalValue) * 100).toFixed(2)) : 0;
+          const autoSide = p.assetType === "期货" ? (isLong ? "卖出" : "买入") : "卖出";
+          const weight = byWeight && totalValue > 0 ? Number(((p.value / totalValue) * 100).toFixed(2)) : 0;
           return B.makeRow({
             biz: p.assetType === "期货" ? "期货" : "收益互换",
             fund: snap.acc.fundName, account: snap.acc.tradeAccount,
-            pool: "--", hedge: "--", orderType: "限价单", code: p.code,
-            side: p.assetType === "期货" ? (isLong ? "卖出" : "买入") : "卖出",
+            pool: "--", hedge: snap.acc.framework,
+            orderType: liqConfig.orderType, code: p.code,
+            side: liqConfig.side === "自动" ? autoSide : liqConfig.side,
             offset: p.assetType === "期货" ? "平仓" : "--",
-            priceType: "最新价", qty: byWeight ? 0 : p.qty, weight, algo: "无算法"
+            priceType: liqConfig.priceType,
+            qty: byWeight ? 0 : p.qty, weight, algo: liqConfig.algo
           });
         });
-        if (byWeight) {
+        if (byWeight && rows.length) {
           const diff = Number((100 - rows.reduce((s, r) => s + r.weight, 0)).toFixed(2));
           rows[rows.length - 1].weight = Number((rows[rows.length - 1].weight + diff).toFixed(2));
         }
-        B.openOrder({
-          name: `强平篮子-${snap.acc.tradeAccount}-${byWeight ? "按市值" : "按数量"}`,
+        return {
+          accountId: snap.acc.id,
+          name: `强平_${snap.acc.tradeAccount}_${stamp()}`,
           alloc: byWeight ? B.ALLOC_WEIGHT : B.ALLOC_QTY,
-          remark: `保证金监测批量强平（${activeMetric} ${pct(snap.d.metrics[activeMetric])}）`,
+          mode,
+          totalAmount: Math.round(totalValue),
+          basketQty: 1,
+          remark: `风险监控强平（${activeMetric} ${pct(snap.d.metrics[activeMetric])}）`,
           rows
-        }, byWeight ? { totalAmount: Math.round(totalValue) } : { basketQty: 1 });
-        B.toast(`已按${mode}生成强平篮子，共 ${rows.length} 笔，分配方式为${byWeight ? "按权重分配" : "按数量分配"}`, "ok");
+        };
+      }
+
+      /* 权重篮子的委托数量由总委托金额与权重反算，落库前先补齐 */
+      function resolveQty(basket) {
+        if (basket.alloc !== B.ALLOC_WEIGHT) {
+          basket.rows.forEach((r) => { r.calcQty = num(r.qty) * Math.max(1, num(basket.basketQty)); });
+          return basket;
+        }
+        basket.rows.forEach((r) => {
+          const it = instOf(r.code);
+          const mult = it?.mult || 1;
+          const unit = it?.minUnit || 1;
+          const amount = num(basket.totalAmount) * num(r.weight) / 100;
+          const raw = r.price > 0 ? amount / (r.price * mult) : 0;
+          r.calcQty = raw < unit ? 0 : Math.floor(raw / unit) * unit;
+        });
+        return basket;
+      }
+
+      function computeBasket(basket) {
+        basket.rows.forEach((r) => {
+          const res = B.resolvePrice(r.code, r.priceType, r.price);
+          r.missing = res.missing || null;
+          r.price = res.missing ? 0 : res.price;
+          B.applyTickOffset(r, mbState.priceLive, mbState.priceTicks);
+        });
+        resolveQty(basket);
+        basket.rows.forEach((r) => {
+          r.estAmount = r.price * (instOf(r.code)?.mult || 1) * num(r.calcQty);
+        });
+        return basket;
+      }
+
+      /* ---------- 批量强平持仓（当前账户） ---------- */
+      function closeBatch(mode) {
+        if (!canLiquidate()) return B.toast(`当前无「${activeMetric}」读写权限，强平已禁用`, "error");
+        const snap = currentSnap();
+        if (!snap) return;
+        const picked = snap.d.posList.filter((p) => posChecked.has(p.code));
+        if (!picked.length) return B.toast("请先勾选需要强平的持仓", "error");
+        if (!HAS_BASKET_MODULE) return B.toast("未开通篮子管理，无法生成强平篮子", "error");
+        openMultiBasket([buildLiqBasket(snap, picked, mode)]);
+      }
+
+      /* ---------- 批量强平账户：按账户维度生成多个篮子 ---------- */
+      function closeBatchAccounts(mode) {
+        if (!canLiquidate()) return B.toast(`当前无「${activeMetric}」读写权限，强平已禁用`, "error");
+        if (!HAS_BASKET_MODULE) return B.toast("未开通篮子管理，无法生成强平篮子", "error");
+        const baskets = [...accChecked]
+          .map((id) => accounts.find((a) => a.id === id))
+          .filter(Boolean)
+          .map((acc) => snapshot(acc))
+          .filter((snap) => snap.d.posList.length)
+          .map((snap) => buildLiqBasket(snap, snap.d.posList, mode));
+        if (!baskets.length) return B.toast("勾选的账户没有可强平的持仓", "error");
+        openMultiBasket(baskets);
+      }
+
+      /* ---------- 多账户强平弹框 ---------- */
+      const mbState = { baskets: [], index: 0, sideMode: B.BY_BASKET, priceMode: B.BY_BASKET, algoMode: B.BY_BASKET, priceLive: false, priceTicks: 0 };
+
+      function openMultiBasket(baskets) {
+        mbState.baskets = baskets;
+        mbState.index = 0;
+        mbState.sideMode = B.BY_BASKET;
+        mbState.priceMode = B.BY_BASKET;
+        mbState.algoMode = B.BY_BASKET;
+        mbState.priceLive = false;
+        mbState.priceTicks = 0;
+        el("rkMbSide").value = B.BY_BASKET;
+        el("rkMbPriceType").value = B.BY_BASKET;
+        el("rkMbAlgo").value = B.BY_BASKET;
+        el("rkMbPriceLive").checked = false;
+        el("rkMbPriceTicks").value = "0";
+        renderMultiBasket();
+        openRkModal("rkMultiBasketModal");
+      }
+
+      function currentBasket() {
+        return mbState.baskets[mbState.index] || null;
+      }
+
+      function renderMultiBasket() {
+        const list = mbState.baskets;
+        el("rkMbTitle").textContent = `多账户强平（共 ${list.length} 个篮子）`;
+        el("rkMbList").innerHTML = list.length
+          ? list.map((b, i) => `
+            <button class="rk-mb-item${i === mbState.index ? " active" : ""}" data-mb="${i}" type="button">
+              <b>${b.name}</b>
+              <span>${b.alloc} · ${b.rows.length} 笔 · ${fmtAmount(b.totalAmount)}</span>
+            </button>`).join("")
+          : `<div class="rk-mb-empty">全部篮子已下单</div>`;
+
+        const body = document.querySelector("#rkMbTable tbody");
+        const current = list[mbState.index];
+        el("rkMbForm").style.display = current ? "" : "none";
+        if (!current) {
+          body.innerHTML = `<tr class="empty-row"><td colspan="15">全部篮子已下单</td></tr>`;
+          el("rkMbSummary").textContent = "";
+          el("rkMbSend").disabled = true;
+          el("rkMbSendAll").disabled = true;
+          return;
+        }
+        computeBasket(current);
+        const byWeight = current.alloc === B.ALLOC_WEIGHT;
+        el("rkMbName").value = current.name;
+        el("rkMbAlloc").value = current.alloc;
+        el("rkMbTotal").value = current.totalAmount;
+        el("rkMbQty").value = current.basketQty;
+        el("rkMbTotalField").style.display = byWeight ? "" : "none";
+        el("rkMbQtyField").style.display = byWeight ? "none" : "";
+        el("rkMbTickField").style.display = mbState.priceLive ? "" : "none";
+        el("rkMbEstAmount").textContent = `${fmtAmount(current.rows.reduce((s, r) => s + num(r.estAmount), 0))} CNY`;
+
+        body.innerHTML = current.rows.length
+          ? current.rows.map((r, i) => `
+            <tr>
+              <td class="frz c0">${i + 1}</td>
+              <td>${B.selectCell("biz", i, B.BIZ_TYPES, r.biz)}</td>
+              <td>${B.selectCell("fund", i, B.FUNDS, r.fund)}</td>
+              <td>${B.selectCell("account", i, B.ACCOUNTS, r.account)}</td>
+              <td>${B.selectCell("hedge", i, B.HEDGES, r.hedge)}</td>
+              <td>${B.selectCell("orderType", i, B.ORDER_TYPES, r.orderType)}</td>
+              <td>${B.symbolCell(i, r.code)}</td>
+              <td>${B.selectCell("side", i, B.SIDES, r.side)}</td>
+              <td>${B.selectCell("offset", i, B.OFFSETS, r.offset)}</td>
+              <td>${B.selectCell("priceType", i, B.PRICE_TYPES, r.priceType)}</td>
+              <td>${B.numCell("price", i, r.missing ? "--" : fmtPrice(r.price, r.code), mbState.priceLive || r.priceType !== "指定价")}</td>
+              <td>${B.numCell("qty", i, byWeight ? fmtQty(r.calcQty) : r.qty, byWeight)}</td>
+              <td>${B.numCell("weight", i, byWeight ? num(r.weight).toFixed(2) : "--", !byWeight)}</td>
+              <td>${B.selectCell("algo", i, B.ALGOS, r.algo)}</td>
+              <td><button class="bk-link danger" data-del="${i}" type="button">删除</button></td>
+            </tr>`).join("")
+          : `<tr class="empty-row"><td colspan="15">该篮子明细已被全部删除</td></tr>`;
+
+        const invalid = current.rows.filter((r) => !r.calcQty).length;
+        const weightSum = current.rows.reduce((s, r) => s + num(r.weight), 0);
+        el("rkMbHint").innerHTML = [
+          byWeight
+            ? '委托数量 = <span class="warn">总委托金额 × 权重 ÷（委托价格 × 合约乘数）</span>，按 minTradeUnit / lotSize 向下取整；'
+            : '明细的委托数量为<span class="warn">单份数量</span>，实际委托数量 = 明细委托数量 × 篮子数量；',
+          '概览的委托方向 / 价格类型 / 算法类型改为非「按篮子配置」时，当前篮子明细整列同步刷新；勾选实时价格后委托价格按行情取价并偏离设定的 tick 数。',
+          invalid ? `<span class="bad">当前有 ${invalid} 笔无效委托（数量为 0 或无行情价），下单时将不予发送。</span>` : ""
+        ].join(" ");
+        el("rkMbSummary").innerHTML = `当前篮子 ${mbState.index + 1}/${list.length}，共 ${current.rows.length} 笔`
+          + (byWeight ? `，权重合计 <b style="color:${Math.abs(weightSum - 100) < 0.005 ? "#6fd7ae" : "#ffb454"}">${weightSum.toFixed(2)}%</b>` : "")
+          + (invalid ? `，<span style="color:#ff9a9a">${invalid} 笔委托数量为 0，将不予发送</span>` : "");
+        el("rkMbSend").disabled = false;
+        el("rkMbSendAll").disabled = false;
+      }
+
+      function sendOneBasket(basket) {
+        const run = B.submitRun(resolveQty(basket));
+        if (run) closeStatus[basket.accountId] = CLOSE_STATUS.DOING;
+        return run;
+      }
+
+      /* ---------- 自动强平 ---------- */
+      function autoLiquidate(trigger) {
+        const acc = accounts.find((a) => a.id === trigger.accountId);
+        if (!acc) return null;
+        const snap = snapshot(acc);
+        if (!snap.d.posList.length) return null;
+        const basket = resolveQty(buildLiqBasket(snap, snap.d.posList, "市值"));
+        const run = sendOneBasket(basket);
+        if (run) B.toast(`${acc.tradeAccount} 触发${trigger.ruleName}且已配置自动强平，已自动生成篮子「${run.name}」并下单`, "error");
+        return run;
+      }
+
+      function handleTriggers(newly) {
+        if (!newly.length) return;
+        pushMessages(newly);
+        showTriggerPopups(newly);
+        newly
+          .filter((t) => t.rule.autoClose && t.status === "强平")
+          .forEach(autoLiquidate);
       }
 
       /* ---------- 风控消息中心 ---------- */
@@ -6611,7 +7152,7 @@
 
       function pushMessages(items) {
         items.forEach((item) => {
-          if (!item.rule.alerts.includes("消息中心")) return;
+          if (!item.rule.alert) return;
           messages.unshift(Object.assign({ id: ++msgSeq, time: mtmTime, read: false }, item));
         });
         renderMessages();
@@ -6655,16 +7196,32 @@
 
       let knownTriggers = new Set();
 
-      function showTriggerModal(items) {
-        const popup = items.filter((t) => t.rule.alerts.includes("弹框提示"));
-        if (!popup.length) return;
-        document.querySelector("#rkTriggerTable tbody").innerHTML = popup.map((t, i) => `
-          <tr data-account="${t.accountId}" data-metric="${t.metric}" style="cursor:pointer">
-            <td>${i + 1}</td><td>${t.tradeAccount}</td><td>${t.customer}</td><td>${t.metric}</td>
-            <td>${t.ruleName}</td><td class="num">${pct(t.value)}</td><td class="num">${t.threshold}%</td>
-            <td>${statusPill(t.status, t.color)}</td><td>${t.measure}</td>
-          </tr>`).join("");
-        openRkModal("rkTriggerModal");
+      /* 触发风控线浮窗：鼠标停留时不消失，点击跳转到对应 sheet 页并高亮账户行 */
+      function showTriggerPopups(items) {
+        const host = el("rkTriggerHost");
+        items.filter((t) => t.rule.alert).forEach((t) => {
+          const node = document.createElement("div");
+          node.className = "rk-trigger-pop";
+          node.style.borderLeftColor = t.color;
+          node.innerHTML = `
+            <div class="head"><span>触发风控线</span><button class="rk-trigger-close" type="button" aria-label="关闭">×</button></div>
+            <div>交易账户 <b>${t.tradeAccount}</b> 触发风控线（${t.ruleName}），交易措施：${t.measure}，自动强平：${t.rule.autoClose ? "是" : "否"}。</div>
+            <div class="tip">该 TRS 账号 ${t.metric} ${pct(t.value)}（${t.rule.direction} ${t.threshold}%）· 点击跳转风险监控</div>`;
+          let timer = setTimeout(() => node.remove(), 10000);
+          node.addEventListener("mouseenter", () => clearTimeout(timer));
+          node.addEventListener("mouseleave", () => { timer = setTimeout(() => node.remove(), 4000); });
+          node.querySelector(".rk-trigger-close").addEventListener("click", (event) => {
+            event.stopPropagation();
+            clearTimeout(timer);
+            node.remove();
+          });
+          node.addEventListener("click", () => {
+            clearTimeout(timer);
+            node.remove();
+            focusAccount(t.accountId, t.metric);
+          });
+          host.appendChild(node);
+        });
       }
 
       function openRkModal(id) {
@@ -6710,21 +7267,48 @@
             acc.nav = Math.round(acc.nav * (1 - Math.random() * 0.08));
             acc.totalPnl = Math.round(acc.totalPnl - Math.random() * acc.margin * 0.03);
           });
+          /* 上一轮发出的强平委托视为在本次 MTM 前已成交 */
+          Object.keys(closeStatus).forEach((id) => {
+            if (closeStatus[id] === CLOSE_STATUS.DOING) closeStatus[id] = CLOSE_STATUS.DONE;
+          });
           mtmTime = B.nowText();
           const current = collectTriggers();
           const newly = current.filter((t) => !knownTriggers.has(triggerKey(t)));
           knownTriggers = new Set(current.map(triggerKey));
+          /* 无感刷新：MTM 后仅更新数值与风控状态，行顺序保持不变 */
+          keepOrder = true;
           renderList();
+          keepOrder = false;
           btn.disabled = false;
           btn.textContent = "刷新";
-          if (newly.length) {
-            pushMessages(newly);
-            showTriggerModal(newly);
-            B.toast(`MTM 执行完成，新触发 ${newly.length} 条风控线`, "error");
-          } else {
-            B.toast("MTM 执行完成，无新增触发", "ok");
-          }
+          handleTriggers(newly);
+          if (newly.length) B.toast(`MTM 执行完成，新触发 ${newly.length} 条风控线`, "error");
+          else B.toast("MTM 执行完成，无新增触发", "ok");
         }, 2000);
+      });
+
+      /* ---------- 筛选 ---------- */
+      function applyFilters() {
+        filters = {
+          customer: el("rkFilterCustomer").value.trim(),
+          fundName: el("rkFilterFund").value.trim(),
+          tradeAccount: el("rkFilterAccount").value.trim()
+        };
+        renderList();
+      }
+
+      el("rkFilterApply").addEventListener("click", applyFilters);
+      el("rkFilterReset").addEventListener("click", () => {
+        el("rkFilterCustomer").value = "";
+        el("rkFilterFund").value = "";
+        el("rkFilterAccount").value = "";
+        statusFilter = "";
+        applyFilters();
+      });
+      ["rkFilterCustomer", "rkFilterFund", "rkFilterAccount"].forEach((id) => {
+        el(id).addEventListener("keydown", (event) => {
+          if (event.key === "Enter") applyFilters();
+        });
       });
 
       /* ---------- 事件绑定 ---------- */
@@ -6732,6 +7316,7 @@
         btn.addEventListener("click", () => {
           activeMetric = btn.dataset.metric;
           statusFilter = "";
+          accChecked = new Set();
           document.querySelectorAll("#rkSheets .rk-sheet").forEach((b) => b.classList.toggle("active", b === btn));
           renderList();
         });
@@ -6744,23 +7329,46 @@
         renderList();
       });
 
+      thead.addEventListener("change", (event) => {
+        if (event.target.id !== "rkAccCheckAll") return;
+        const ids = visibleSnapshots().map((s) => s.acc.id);
+        if (event.target.checked) ids.forEach((id) => accChecked.add(id));
+        else ids.forEach((id) => accChecked.delete(id));
+        renderList();
+      });
+
+      tbody.addEventListener("change", (event) => {
+        const id = event.target.dataset.acc;
+        if (!id) return;
+        if (event.target.checked) accChecked.add(Number(id)); else accChecked.delete(Number(id));
+        syncAccSelection();
+      });
+
       tbody.addEventListener("click", (event) => {
         const tr = event.target.closest("tr[data-id]");
-        if (!tr) return;
+        if (!tr || event.target.dataset.acc) return;
         const acc = accounts.find((a) => a.id === Number(tr.dataset.id));
         const act = event.target.dataset.act;
         if (act === "edit") return openRuleModal("edit", acc);
-        if (act === "del") return deleteRules(acc);
+        if (act === "del") return deleteRules([acc]);
         activeAccountId = acc.id;
         posChecked = new Set();
         renderList();
+      });
+
+      posHead.addEventListener("change", (event) => {
+        if (event.target.id !== "rkPosCheckAll") return;
+        const snap = currentSnap();
+        if (!snap) return;
+        posChecked = event.target.checked ? new Set(snap.d.posList.map((p) => p.code)) : new Set();
+        renderDrill(snap);
       });
 
       posBody.addEventListener("change", (event) => {
         const code = event.target.dataset.pos;
         if (!code) return;
         if (event.target.checked) posChecked.add(code); else posChecked.delete(code);
-        renderDrill(currentSnap());
+        syncPosSelection();
       });
 
       posBody.addEventListener("click", (event) => {
@@ -6768,31 +7376,141 @@
         closeSingle(event.target.dataset.code);
       });
 
-      posCheckAll.addEventListener("change", () => {
-        const snap = currentSnap();
-        if (!snap) return;
-        posChecked = posCheckAll.checked ? new Set(snap.d.posList.map((p) => p.code)) : new Set();
-        renderDrill(snap);
-      });
-
-      const batchMenu = el("rkBatchMenu");
-      el("rkBatchClose").addEventListener("click", (event) => {
-        event.stopPropagation();
-        batchMenu.classList.toggle("open");
-      });
-      document.addEventListener("click", () => batchMenu.classList.remove("open"));
-      batchMenu.querySelectorAll("[data-close-mode]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          batchMenu.classList.remove("open");
-          closeBatch(btn.dataset.closeMode);
+      function wireMenu(btnId, menuId, handler) {
+        const menu = el(menuId);
+        el(btnId).addEventListener("click", (event) => {
+          event.stopPropagation();
+          menu.classList.toggle("open");
         });
+        document.addEventListener("click", () => menu.classList.remove("open"));
+        menu.querySelectorAll("[data-close-mode]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            menu.classList.remove("open");
+            handler(btn.dataset.closeMode);
+          });
+        });
+      }
+
+      wireMenu("rkBatchClose", "rkBatchMenu", closeBatch);
+      wireMenu("rkBatchCloseAcc", "rkBatchAccMenu", closeBatchAccounts);
+
+      /* ---------- 多账户强平弹框事件 ---------- */
+      el("rkMbList").addEventListener("click", (event) => {
+        const item = event.target.closest("[data-mb]");
+        if (!item) return;
+        mbState.index = Number(item.dataset.mb);
+        renderMultiBasket();
       });
 
-      document.querySelector("#rkTriggerTable").addEventListener("click", (event) => {
-        const tr = event.target.closest("tr[data-account]");
-        if (!tr) return;
-        closeRkModal("rkTriggerModal");
-        focusAccount(Number(tr.dataset.account), tr.dataset.metric);
+      /* 明细沿用篮子模块的行内编辑：默认值只是初始参数，落单前均可改 */
+      B.bindRowEditing(document.querySelector("#rkMbTable tbody"), () => (currentBasket() || { rows: [] }).rows, renderMultiBasket);
+
+      el("rkMbName").addEventListener("input", () => {
+        const current = currentBasket();
+        if (current) current.name = el("rkMbName").value;
+      });
+
+      el("rkMbTotal").addEventListener("input", () => {
+        const current = currentBasket();
+        if (!current) return;
+        current.totalAmount = num(el("rkMbTotal").value);
+        renderMultiBasket();
+      });
+
+      el("rkMbQty").addEventListener("input", () => {
+        const current = currentBasket();
+        if (!current) return;
+        current.basketQty = Math.max(1, Math.floor(num(el("rkMbQty").value)));
+        renderMultiBasket();
+      });
+
+      /* 概览的委托方向 / 价格类型 / 算法类型改为非「按篮子配置」时，当前篮子明细整列同步 */
+      el("rkMbPriceType").innerHTML = [B.BY_BASKET]
+        .concat(B.PRICE_TYPES.filter((p) => p !== "指定价"))
+        .map((p) => `<option value="${p}">${p}</option>`).join("");
+      el("rkMbAlgo").innerHTML = [B.BY_BASKET].concat(B.ALGOS).map((a) => `<option value="${a}">${a}</option>`).join("");
+
+      el("rkMbSide").addEventListener("change", () => {
+        mbState.sideMode = el("rkMbSide").value;
+        const current = currentBasket();
+        if (current && mbState.sideMode !== B.BY_BASKET) {
+          const side = mbState.sideMode === "全部买入" ? "买入" : "卖出";
+          current.rows.forEach((r) => { r.side = side; });
+        }
+        renderMultiBasket();
+      });
+
+      el("rkMbPriceType").addEventListener("change", () => {
+        mbState.priceMode = el("rkMbPriceType").value;
+        const current = currentBasket();
+        if (current && mbState.priceMode !== B.BY_BASKET) {
+          const missing = current.rows.filter((r) => B.resolvePrice(r.code, mbState.priceMode, r.price).missing);
+          if (missing.length) {
+            B.toast(`标的${missing.map((r) => r.code).join("、")}没有${B.resolvePrice(missing[0].code, mbState.priceMode, 0).missing}停价，请调整价格类型`, "error");
+            el("rkMbPriceType").value = mbState.priceMode = B.BY_BASKET;
+            return renderMultiBasket();
+          }
+          current.rows.forEach((r) => { r.priceType = mbState.priceMode; });
+        }
+        renderMultiBasket();
+      });
+
+      el("rkMbAlgo").addEventListener("change", () => {
+        mbState.algoMode = el("rkMbAlgo").value;
+        const current = currentBasket();
+        if (current && mbState.algoMode !== B.BY_BASKET) {
+          current.rows.forEach((r) => { r.algo = mbState.algoMode; });
+        }
+        renderMultiBasket();
+      });
+
+      el("rkMbPriceLive").addEventListener("change", () => {
+        mbState.priceLive = el("rkMbPriceLive").checked;
+        renderMultiBasket();
+      });
+
+      el("rkMbPriceTicks").addEventListener("input", () => {
+        mbState.priceTicks = Math.trunc(num(el("rkMbPriceTicks").value));
+        renderMultiBasket();
+      });
+
+      el("rkMbSend").addEventListener("click", () => {
+        const current = mbState.baskets[mbState.index];
+        if (!current) return;
+        B.askConfirm(
+          "篮子下单二次确认",
+          `您确定要下单这个篮子吗？<br /><span style="color:#9ba1ae">${current.name}，${current.alloc}，共 ${current.rows.length} 笔，委托属性为「强平委托」。</span>`,
+          () => {
+            const run = sendOneBasket(current);
+            mbState.baskets.splice(mbState.index, 1);
+            if (mbState.index >= mbState.baskets.length) mbState.index = Math.max(0, mbState.baskets.length - 1);
+            renderMultiBasket();
+            renderList();
+            B.toast(run ? `篮子「${run.name}」已发送 ${run.orders.length} 笔强平委托` : "该篮子无有效委托，未发送", run ? "ok" : "error");
+            if (!mbState.baskets.length) {
+              closeRkModal("rkMultiBasketModal");
+              B.gotoBasketTrade();
+            }
+          }
+        );
+      });
+
+      el("rkMbSendAll").addEventListener("click", () => {
+        const list = mbState.baskets;
+        if (!list.length) return;
+        B.askConfirm(
+          "篮子下单二次确认",
+          `您确定要下单这些篮子吗？<br /><span style="color:#9ba1ae">共 ${list.length} 个篮子、${list.reduce((s, b) => s + b.rows.length, 0)} 笔委托，委托属性均为「强平委托」。</span>`,
+          () => {
+            const sent = list.map(sendOneBasket).filter(Boolean);
+            mbState.baskets = [];
+            mbState.index = 0;
+            closeRkModal("rkMultiBasketModal");
+            renderList();
+            B.gotoBasketTrade();
+            B.toast(`已下单 ${sent.length} 个强平篮子，共 ${sent.reduce((s, r) => s + r.orders.length, 0)} 笔强平委托`, "ok");
+          }
+        );
       });
 
       const bellBtn = el("rkBellBtn");
@@ -6830,6 +7548,8 @@
       const ruleColor = el("rkRuleColor");
       const ruleThreshold = el("rkRuleThreshold");
       const ruleMeasure = el("rkRuleMeasure");
+      const ruleAutoClose = el("rkRuleAutoClose");
+      const ruleAlert = el("rkRuleAlert");
 
       ruleName.innerHTML = RULE_NAMES.map((n) => `<option value="${n}">${n}</option>`).join("");
       ruleStatus.innerHTML = STATUSES.filter((s) => s !== "正常").map((s) => `<option value="${s}">${s}</option>`).join("");
@@ -6883,7 +7603,7 @@
             <tr${r.id === ruleState.editingId ? ' class="selected"' : ""}>
               <td>${i + 1}</td><td>${r.ruleName}</td><td>${r.direction}</td>
               <td class="num">${r.threshold}%</td><td>${r.measure}</td>
-              <td>${r.alerts.join("、") || "--"}</td>
+              <td>${[r.autoClose ? "自动强平" : "", r.alert ? "风控提示" : ""].filter(Boolean).join("、") || "--"}</td>
               <td>${statusPill(r.status, r.color)}</td>
               <td><div class="ops"><button class="bk-link" data-load="${r.id}" type="button">载入</button><button class="bk-link danger" data-drop="${r.id}" type="button">删除</button></div></td>
             </tr>`).join("")
@@ -6917,7 +7637,8 @@
         ruleMeasure.value = rule.measure;
         ruleStatus.value = rule.status;
         ruleColor.value = rule.color;
-        document.querySelectorAll("#rkRuleAlerts input").forEach((cb) => { cb.checked = rule.alerts.includes(cb.value); });
+        ruleAutoClose.checked = !!rule.autoClose;
+        ruleAlert.checked = !!rule.alert;
         syncSwatches();
         el("rkRuleFormTitle").textContent = `风控线设置（正在修改：${rule.ruleName}）`;
         renderRuleList();
@@ -6942,35 +7663,25 @@
         ruleColor.value = STATUS_COLOR["预警"];
         ruleThreshold.value = "";
         ruleMeasure.value = "限制买入";
-        document.querySelectorAll("#rkRuleAlerts input").forEach((cb) => { cb.checked = cb.value !== "声音提示"; });
+        ruleAutoClose.checked = false;
+        ruleAlert.checked = true;
         setMultiSelection(acc ? [acc.id] : []);
         [ruleFunds, ruleCps, ruleAccounts].forEach((sel) => { sel.disabled = mode === "edit"; });
-        el("rkRuleHint").innerHTML = mode === "edit"
-          ? '编辑态锁定账户范围；点击上方列表的「载入」可修改已有风控线，直接填写并确定则为该账户新增一条。'
-          : '资金账号名称 / 交易对手名称 / 交易账户 三个多选框可任选其一或组合（取并集），支持一次为多个账户批量设置同一条风控线。';
         syncSwatches();
         renderRuleList();
-        updateRuleSummary();
         openRkModal("rkRuleModal");
       }
-
-      function updateRuleSummary() {
-        const ids = selectedAccountIds();
-        el("rkRuleSummary").textContent = ids.length ? `将作用于 ${ids.length} 个交易账户` : "请至少选择一个账户";
-      }
-
-      [ruleFunds, ruleCps, ruleAccounts].forEach((sel) => sel.addEventListener("change", updateRuleSummary));
 
       el("rkRuleConfirm").addEventListener("click", () => {
         const threshold = Number(ruleThreshold.value);
         if (!Number.isFinite(threshold) || threshold <= 0 || threshold > 999) {
           return B.toast("请填写 1-999 之间的风控阈值", "error");
         }
-        const alerts = [...document.querySelectorAll("#rkRuleAlerts input")].filter((cb) => cb.checked).map((cb) => cb.value);
         const payload = {
           metric: activeMetric, direction: DIRECTION[activeMetric],
           ruleName: ruleName.value, threshold, measure: ruleMeasure.value,
-          status: ruleStatus.value, color: ruleColor.value, alerts
+          autoClose: ruleAutoClose.checked,
+          status: ruleStatus.value, color: ruleColor.value, alert: ruleAlert.checked
         };
 
         if (ruleState.editingId) {
@@ -6998,25 +7709,25 @@
         closeRkModal("rkRuleModal");
         activeAccountId = ids[0];
         renderList();
-        /* 新增后即时判定，若已触发则补发消息与弹框 */
-        const current = collectTriggers();
-        const newly = current.filter((t) => !knownTriggers.has(triggerKey(t)));
-        knownTriggers = new Set(current.map(triggerKey));
-        if (newly.length) {
-          pushMessages(newly);
-          showTriggerModal(newly);
-        }
+        /* 新增后即时判定，若已触发则补发消息、浮窗，并按自动强平配置生成篮子 */
+        refreshTriggers();
         B.toast(`已为 ${ids.length} 个交易账户新增${payload.ruleName}（阈值 ${threshold}%）`, "ok");
       });
 
-      function deleteRules(acc) {
-        const list = rulesOf(acc, activeMetric);
-        if (!list.length) return B.toast(`${acc.tradeAccount} 在「${activeMetric}」下没有风控线`, "error");
+      function deleteRules(targets) {
+        const list = targets.flatMap((acc) => rulesOf(acc, activeMetric));
+        if (!list.length) {
+          const names = targets.map((a) => a.tradeAccount).join("、");
+          return B.toast(`${names} 在「${activeMetric}」下没有风控线`, "error");
+        }
+        const scope = targets.length === 1
+          ? `<strong>${targets[0].tradeAccount}（${targets[0].customer}）</strong>`
+          : `<strong>${targets.length} 个交易账户</strong>`;
         B.askConfirm(
           "删除风控线",
-          `确定删除 <strong>${acc.tradeAccount}（${acc.customer}）</strong> 在「${activeMetric}」下的全部风控线吗？`
-            + `<br /><span style="color:#ff9a9a">共 ${list.length} 条：${list.map((r) => `${r.ruleName} ${r.threshold}%`).join("、")}</span>`
-            + `<br /><span style="color:#9ba1ae">删除后该账户在本指标下不再参与风控判定。</span>`,
+          `确定删除 ${scope} 在「${activeMetric}」下的全部风控线吗？`
+            + `<br /><span style="color:#ff9a9a">共 ${list.length} 条：${list.map((r) => `${r.tradeAccount} ${r.ruleName} ${r.threshold}%`).join("、")}</span>`
+            + `<br /><span style="color:#9ba1ae">删除后这些账户在本指标下不再参与风控判定。</span>`,
           () => {
             list.forEach((r) => {
               const index = rules.indexOf(r);
@@ -7030,12 +7741,152 @@
       }
 
       el("rkAddRule").addEventListener("click", () => openRuleModal("create"));
+      el("rkDelRule").addEventListener("click", () => {
+        const targets = [...accChecked].map((id) => accounts.find((a) => a.id === id)).filter(Boolean);
+        if (!targets.length) return B.toast("请先勾选交易账户", "error");
+        deleteRules(targets);
+      });
+
+      /* ---------- 强平篮子默认字段配置 + LIC 权限 ---------- */
+      const cfgOrderType = el("rkCfgOrderType");
+      const cfgSide = el("rkCfgSide");
+      const cfgPriceType = el("rkCfgPriceType");
+      const cfgAlgo = el("rkCfgAlgo");
+      const options = (list) => list.map((v) => `<option value="${v}">${v}</option>`).join("");
+      cfgOrderType.innerHTML = options(B.ORDER_TYPES);
+      cfgSide.innerHTML = options(["自动", ...B.SIDES]);
+      cfgPriceType.innerHTML = options(B.PRICE_TYPES);
+      cfgAlgo.innerHTML = options(B.ALGOS);
+      el("rkCfgLic").innerHTML = METRICS.map((m) => `<label><input type="checkbox" data-lic="${m}" />${m} 读写</label>`).join("");
+
+      el("rkLiqConfig").addEventListener("click", () => {
+        cfgOrderType.value = liqConfig.orderType;
+        cfgSide.value = liqConfig.side;
+        cfgPriceType.value = liqConfig.priceType;
+        cfgAlgo.value = liqConfig.algo;
+        document.querySelectorAll("#rkCfgLic input").forEach((cb) => { cb.checked = LIC[cb.dataset.lic].write; });
+        openRkModal("rkLiqConfigModal");
+      });
+
+      el("rkCfgConfirm").addEventListener("click", () => {
+        liqConfig.orderType = cfgOrderType.value;
+        liqConfig.side = cfgSide.value;
+        liqConfig.priceType = cfgPriceType.value;
+        liqConfig.algo = cfgAlgo.value;
+        document.querySelectorAll("#rkCfgLic input").forEach((cb) => { LIC[cb.dataset.lic].write = cb.checked; });
+        closeRkModal("rkLiqConfigModal");
+        renderList();
+        B.toast("强平篮子默认字段与权限配置已保存", "ok");
+      });
+
+      /* ---------- 风控线导入 / 导入模板 ---------- */
+      const TEMPLATE_HEAD = ["资金账号名称/交易账户", "风控线名称", "风控阈值(%)", "交易措施", "自动强平", "风控提示", "风控颜色", "风控状态"];
+
+      el("rkExportTpl").addEventListener("click", () => {
+        const sample = accounts.slice(0, 2).map((a) => [a.tradeAccount, "预警线", 150, "限制买入", "否", "弹框提示、消息中心", STATUS_COLOR["预警"], "预警"]);
+        const csv = [TEMPLATE_HEAD, ...sample].map((row) => row.join(",")).join("\r\n");
+        const blob = new Blob([`\uFEFF${csv}`], { type: "application/vnd.ms-excel" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "风控线导入模板.xls";
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 2000);
+        B.askConfirm("保存成功", "「风控线导入模板.xls」已保存到本地下载目录。", () => {});
+      });
+
+      let importRows = [];
+
+      function parseImport(text) {
+        const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        if (lines.length && lines[0].includes("风控线名称")) lines.shift();
+        return lines.map((line) => {
+          const cell = line.split(",").map((v) => v.trim());
+          const key = cell[0];
+          const acc = accounts.find((a) => a.tradeAccount === key || a.fundName === key || a.realFund === key);
+          const threshold = Number(cell[2]);
+          const row = {
+            key, acc, ruleName: cell[1] || RULE_NAMES[0], threshold,
+            measure: cell[3] || "限制买入", autoClose: cell[4] === "是",
+            alert: cell[5] !== "否",
+            color: cell[6] || "", status: cell[7] || "预警"
+          };
+          if (!acc) row.error = "账户不存在";
+          else if (!Number.isFinite(threshold) || threshold <= 0 || threshold > 999) row.error = "阈值需为 1-999";
+          else if (rules.some((r) => r.metric === activeMetric && r.tradeAccount === acc.tradeAccount && r.threshold === threshold)) {
+            row.error = `该账户已存在阈值为${threshold}%的风控线设置`;
+          }
+          if (!row.color) row.color = STATUS_COLOR[row.status] || STATUS_COLOR["预警"];
+          return row;
+        });
+      }
+
+      function renderImportPreview() {
+        const body = document.querySelector("#rkImportPreview tbody");
+        body.innerHTML = importRows.length
+          ? importRows.map((r, i) => `
+            <tr>
+              <td>${i + 1}</td><td>${r.key || "--"}</td><td>${r.ruleName}</td>
+              <td class="num">${Number.isFinite(r.threshold) ? `${r.threshold}%` : "--"}</td>
+              <td>${r.measure}</td><td>${r.autoClose ? "是" : "否"}</td><td>${r.status}</td>
+              <td style="color:${r.error ? "#ff9a9a" : "#6fd7ae"}">${r.error || "校验通过"}</td>
+            </tr>`).join("")
+          : `<tr class="empty-row"><td colspan="8">请选择文件</td></tr>`;
+        const ok = importRows.filter((r) => !r.error).length;
+        el("rkImportSummary").innerHTML = importRows.length
+          ? `共 ${importRows.length} 行，可导入 <b style="color:#fff">${ok}</b> 行，失败 ${importRows.length - ok} 行`
+          : "尚未选择文件";
+      }
+
+      el("rkImportRule").addEventListener("click", () => {
+        importRows = [];
+        el("rkImportFile").value = "";
+        renderImportPreview();
+        openRkModal("rkImportModal");
+      });
+
+      el("rkImportFile").addEventListener("change", (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          importRows = parseImport(String(reader.result || ""));
+          renderImportPreview();
+          const bad = importRows.find((r) => r.error && r.error.includes("已存在阈值"));
+          if (bad) B.toast(bad.error, "error");
+        };
+        reader.readAsText(file, "UTF-8");
+      });
+
+      el("rkImportConfirm").addEventListener("click", () => {
+        const valid = importRows.filter((r) => !r.error);
+        if (!valid.length) return B.toast("没有可导入的有效数据", "error");
+        valid.forEach((r) => {
+          rules.push({
+            id: ++ruleSeq, metric: activeMetric, direction: DIRECTION[activeMetric],
+            ruleName: r.ruleName, threshold: r.threshold, measure: r.measure,
+            autoClose: r.autoClose, status: r.status, color: r.color, alert: r.alert,
+            fundName: r.acc.fundName, counterparty: r.acc.counterparty, tradeAccount: r.acc.tradeAccount
+          });
+        });
+        closeRkModal("rkImportModal");
+        renderList();
+        refreshTriggers();
+        B.toast(`已导入 ${valid.length} 条风控线`, "ok");
+      });
+
+      function refreshTriggers() {
+        const current = collectTriggers();
+        const newly = current.filter((t) => !knownTriggers.has(triggerKey(t)));
+        knownTriggers = new Set(current.map(triggerKey));
+        handleTriggers(newly);
+        return newly;
+      }
 
       /* ---------- 初始化 ---------- */
       const initialTriggers = collectTriggers();
       knownTriggers = new Set(initialTriggers.map(triggerKey));
       initialTriggers.forEach((t) => {
-        if (!t.rule.alerts.includes("消息中心")) return;
+        if (!t.rule.alert) return;
         messages.unshift(Object.assign({ id: ++msgSeq, time: mtmTime, read: false }, t));
       });
       renderMessages();

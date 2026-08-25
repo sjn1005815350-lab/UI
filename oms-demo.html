@@ -1981,6 +1981,39 @@
 
     .rk-color-swatch.active { box-shadow: 0 0 0 2px #eef1f7; }
 
+    /* 事中风控：交易账户汇总行 + 风控线明细行 */
+    .bk-table tbody tr.rc-group,
+    .bk-table tbody tr.rc-group .frz { background: #1b2030; }
+    .bk-table tbody tr.rc-group:hover,
+    .bk-table tbody tr.rc-group:hover .frz { background: #222941; }
+    .bk-table tbody tr.rc-group td { cursor: pointer; font-weight: 700; color: #e8ecf5; }
+    .bk-table tbody tr.rc-child td:not(.frz) { color: #cbd1dc; }
+    .rc-group-cnt { color: #8f96a3; font-weight: 400; }
+
+    .rc-toggle {
+      width: 16px;
+      height: 16px;
+      margin-right: 4px;
+      border: 0;
+      background: transparent;
+      color: #9ba1ae;
+      font-size: 11px;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform 0.12s ease;
+    }
+
+    .rc-toggle.open { transform: rotate(90deg); }
+
+    .rc-color-cell { display: inline-flex; align-items: center; gap: 6px; }
+
+    .rc-color-cell > i {
+      width: 12px;
+      height: 12px;
+      border: 1px solid #3a4150;
+      border-radius: 2px;
+    }
+
     .rk-multi {
       height: 74px;
       padding: 2px;
@@ -1999,13 +2032,6 @@
 
     .rk-check-row { display: flex; align-items: center; gap: 12px; color: #cbd1dc; }
     .rk-check-row label { display: flex; align-items: center; gap: 4px; }
-
-    .rk-rule-list-wrap {
-      max-height: 156px;
-      overflow: auto;
-      border-bottom: 1px solid #232733;
-      background: #090a0f;
-    }
 
     .rk-filters {
       display: flex;
@@ -3544,10 +3570,6 @@
           </div>
 
           <div class="rk-toolbar">
-            <button class="bk-btn primary" id="rkAddRule" type="button">新增</button>
-            <button class="bk-btn danger" id="rkDelRule" type="button" disabled>删除</button>
-            <button class="bk-btn" id="rkImportRule" type="button">导入</button>
-            <button class="bk-btn" id="rkExportTpl" type="button">导入模板</button>
             <span class="bk-menu-wrap">
               <button class="bk-btn danger" id="rkBatchCloseAcc" type="button" disabled>批量强平账户 ⌄</button>
               <span class="bk-menu" id="rkBatchAccMenu">
@@ -3561,7 +3583,8 @@
           </div>
 
           <div class="rk-sheets" id="rkSheets">
-            <button class="rk-sheet active" data-metric="维持担保比例" type="button">维持担保比例</button>
+            <button class="rk-sheet active" data-metric="汇总" type="button">汇总</button>
+            <button class="rk-sheet" data-metric="维持担保比例" type="button">维持担保比例</button>
             <button class="rk-sheet" data-metric="剩余流动性占比" type="button">剩余流动性占比</button>
             <button class="rk-sheet" data-metric="保证金损耗比例" type="button">保证金损耗比例</button>
           </div>
@@ -3593,6 +3616,44 @@
                 <tbody></tbody>
               </table>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 风控 - 风控设置（三级菜单：事中风控） -->
+      <section class="view-panel bk-view" id="view-riskConfig" aria-label="风控设置">
+        <div class="bk-panel">
+          <div class="rk-sheets" id="rcTabs">
+            <button class="rk-sheet active" data-rc-tab="during" type="button">事中风控</button>
+          </div>
+
+          <div class="rk-filters">
+            <span class="bk-label">客户名称</span>
+            <input class="bk-input" id="rcFilterFund" style="width:180px" placeholder="全部" />
+            <span class="bk-label">客户名</span>
+            <input class="bk-input" id="rcFilterCustomer" style="width:130px" placeholder="全部" />
+            <span class="bk-label">交易账户</span>
+            <input class="bk-input" id="rcFilterAccount" style="width:130px" placeholder="全部" />
+            <span class="bk-label">交易对手名称</span>
+            <input class="bk-input" id="rcFilterCounterparty" style="width:150px" placeholder="全部" />
+            <button class="bk-btn primary" id="rcFilterApply" type="button">筛选</button>
+            <button class="bk-btn" id="rcFilterReset" type="button">重置</button>
+          </div>
+
+          <div class="rk-toolbar">
+            <button class="bk-btn primary" id="rcAddRule" type="button">新增</button>
+            <button class="bk-btn danger" id="rcDelRule" type="button" disabled>删除</button>
+            <button class="bk-btn" id="rcImportRule" type="button">导入</button>
+            <button class="bk-btn" id="rcExportTpl" type="button">导入模板</button>
+            <span class="bk-spacer"></span>
+            <span class="bk-count" id="rcSummary">共 0 条</span>
+          </div>
+
+          <div class="bk-table-wrap">
+            <table class="bk-table" id="rcTable" style="min-width:1880px">
+              <thead></thead>
+              <tbody></tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -4095,99 +4156,79 @@
     </div>
   </div>
 
-  <!-- 新增/编辑风控线 -->
-  <div class="bk-modal" id="rkRuleModal" aria-hidden="true">
-    <div class="bk-dialog mid" role="dialog" aria-modal="true" aria-labelledby="rkRuleTitle">
+  <!-- 风控设置 / 事中风控：新增、编辑风控线 -->
+  <div class="bk-modal" id="rcRuleModal" aria-hidden="true">
+    <div class="bk-dialog mid" role="dialog" aria-modal="true" aria-labelledby="rcRuleTitle">
       <header class="bk-dialog-header">
-        <span id="rkRuleTitle">新增风控线</span>
-        <button class="bk-dialog-close" data-bk-close="rkRuleModal" type="button" aria-label="关闭">×</button>
+        <span id="rcRuleTitle">新增风控线</span>
+        <button class="bk-dialog-close" data-bk-close="rcRuleModal" type="button" aria-label="关闭">×</button>
       </header>
       <div class="bk-dialog-body">
-        <div class="bk-section-title" id="rkRuleListTitle" style="display:none"><span>该账户已设置的风控线（点击「载入」修改）</span></div>
-        <div class="rk-rule-list-wrap" id="rkRuleListWrap" style="display:none">
-          <table class="bk-table" id="rkRuleListTable" style="min-width:820px">
-            <thead>
-              <tr>
-                <th style="width:52px">序号</th>
-                <th style="width:100px">风控线名称</th>
-                <th style="width:80px">风控方向</th>
-                <th style="width:88px">风控阈值</th>
-                <th style="width:100px">交易措施</th>
-                <th style="width:170px">风控提示</th>
-                <th style="width:88px">风控状态</th>
-                <th style="width:120px">操作</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-
-        <div class="bk-section-title"><span id="rkRuleFormTitle">风控线设置</span></div>
         <div class="bk-form-grid">
-          <div class="bk-field">
-            <span class="bk-label">风控指标</span>
-            <input class="bk-input" id="rkRuleMetric" readonly />
-          </div>
-          <div class="bk-field">
-            <span class="bk-label">风控线名称</span>
-            <select class="bk-select" id="rkRuleName"></select>
-          </div>
-          <div class="bk-field">
-            <span class="bk-label">风控方向</span>
-            <input class="bk-input" id="rkRuleDirection" readonly />
-          </div>
-          <div class="bk-field">
-            <span class="bk-label">风控阈值(%)</span>
-            <input class="bk-input" id="rkRuleThreshold" inputmode="numeric" maxlength="3" placeholder="N%（3，0）" />
-          </div>
           <div class="bk-field rk-field-tall">
             <span class="bk-label">资金账号名称</span>
-            <select class="rk-multi" id="rkRuleFunds" multiple></select>
+            <select class="rk-multi" id="rcRuleFunds" multiple></select>
           </div>
           <div class="bk-field rk-field-tall">
             <span class="bk-label">交易对手名称</span>
-            <select class="rk-multi" id="rkRuleCounterparties" multiple></select>
+            <select class="rk-multi" id="rcRuleCounterparties" multiple></select>
           </div>
           <div class="bk-field rk-field-tall">
             <span class="bk-label">交易账户</span>
-            <select class="rk-multi" id="rkRuleAccounts" multiple></select>
+            <select class="rk-multi" id="rcRuleAccounts" multiple></select>
+          </div>
+          <div class="bk-field">
+            <span class="bk-label">风控线名称</span>
+            <select class="bk-select" id="rcRuleName"></select>
+          </div>
+          <div class="bk-field">
+            <span class="bk-label">风控类型</span>
+            <select class="bk-select" id="rcRuleType"></select>
+          </div>
+          <div class="bk-field">
+            <span class="bk-label">风控方向</span>
+            <input class="bk-input" id="rcRuleDirection" readonly />
+          </div>
+          <div class="bk-field">
+            <span class="bk-label">风控阈值(%)</span>
+            <input class="bk-input" id="rcRuleThreshold" inputmode="numeric" maxlength="3" placeholder="N%（3，0）" />
           </div>
           <div class="bk-field">
             <span class="bk-label">交易措施</span>
-            <select class="bk-select" id="rkRuleMeasure">
+            <select class="bk-select" id="rcRuleMeasure">
               <option value="限制买入">限制买入</option>
               <option value="禁止交易">禁止交易</option>
             </select>
           </div>
           <div class="bk-field">
             <span class="bk-label">风控状态</span>
-            <select class="bk-select" id="rkRuleStatus"></select>
+            <select class="bk-select" id="rcRuleStatus"></select>
           </div>
           <div class="bk-field">
             <span class="bk-label">自动强平</span>
             <div class="rk-check-row">
-              <label><input type="checkbox" id="rkRuleAutoClose" />触发后自动生成篮子并下单</label>
+              <label><input type="checkbox" id="rcRuleAutoClose" />触发后自动生成篮子并下单</label>
             </div>
           </div>
           <div class="bk-field">
             <span class="bk-label">风控提示</span>
             <div class="rk-check-row">
-              <label><input type="checkbox" id="rkRuleAlert" checked /></label>
+              <label><input type="checkbox" id="rcRuleAlert" checked /></label>
             </div>
           </div>
           <div class="bk-field">
             <span class="bk-label">风控颜色</span>
             <div class="rk-color-row">
-              <input type="color" id="rkRuleColor" value="#f3a932" style="width:34px;height:22px;border:1px solid #2b303d;background:#0d0f16;padding:0" />
-              <div class="rk-color-swatches" id="rkRuleSwatches"></div>
+              <input type="color" id="rcRuleColor" value="#f3a932" style="width:34px;height:22px;border:1px solid #2b303d;background:#0d0f16;padding:0" />
+              <div class="rk-color-swatches" id="rcRuleSwatches"></div>
             </div>
           </div>
         </div>
       </div>
       <footer class="bk-dialog-footer">
         <span class="bk-spacer"></span>
-        <button class="bk-btn" data-bk-close="rkRuleModal" type="button">取消</button>
-        <button class="bk-btn primary" id="rkRuleConfirm" type="button">确定</button>
+        <button class="bk-btn" data-bk-close="rcRuleModal" type="button">取消</button>
+        <button class="bk-btn primary" id="rcRuleConfirm" type="button">确定</button>
       </footer>
     </div>
   </div>
@@ -4333,20 +4374,24 @@
   </div>
 
   <!-- 风控线导入 -->
-  <div class="bk-modal" id="rkImportModal" aria-hidden="true">
-    <div class="bk-dialog narrow" role="dialog" aria-modal="true" aria-labelledby="rkImportTitle">
+  <div class="bk-modal" id="rcImportModal" aria-hidden="true">
+    <div class="bk-dialog narrow" role="dialog" aria-modal="true" aria-labelledby="rcImportTitle">
       <header class="bk-dialog-header">
-        <span id="rkImportTitle">导入风控线</span>
-        <button class="bk-dialog-close" data-bk-close="rkImportModal" type="button" aria-label="关闭">×</button>
+        <span id="rcImportTitle">导入风控线</span>
+        <button class="bk-dialog-close" data-bk-close="rcImportModal" type="button" aria-label="关闭">×</button>
       </header>
       <div class="bk-dialog-body">
-        <div class="bk-hint">请选择按「风控线导入模板.xls」填写的文件。模板列：资金账号名称/交易账户、风控线名称、风控阈值(%)、交易措施、自动强平、风控提示、风控颜色、风控状态。</div>
+        <div class="bk-hint">请选择按「风控线导入模板.xls」填写的文件。模板列：资金账号名称/交易账户、风控线名称、风控阈值(%)、交易措施、自动强平、风控提示、风控颜色、风控状态。模板不含风控类型，导入时按下方选择归入对应风控类型，默认维持担保比例。</div>
+        <div class="bk-field">
+          <span class="bk-label">风控类型</span>
+          <select class="bk-select" id="rcImportType"></select>
+        </div>
         <div class="bk-field wide">
           <span class="bk-label">选择文件</span>
-          <input type="file" id="rkImportFile" accept=".xls,.xlsx,.csv" class="bk-input" style="padding:3px" />
+          <input type="file" id="rcImportFile" accept=".xls,.xlsx,.csv" class="bk-input" style="padding:3px" />
         </div>
         <div class="bk-detail-wrap" style="margin-top:8px">
-          <table class="bk-table" id="rkImportPreview" style="min-width:760px">
+          <table class="bk-table" id="rcImportPreview" style="min-width:760px">
             <thead>
               <tr>
                 <th style="width:52px">序号</th>
@@ -4364,10 +4409,10 @@
         </div>
       </div>
       <footer class="bk-dialog-footer">
-        <span class="bk-count" id="rkImportSummary">尚未选择文件</span>
+        <span class="bk-count" id="rcImportSummary">尚未选择文件</span>
         <span class="bk-spacer"></span>
-        <button class="bk-btn" data-bk-close="rkImportModal" type="button">取消</button>
-        <button class="bk-btn primary" id="rkImportConfirm" type="button">导入</button>
+        <button class="bk-btn" data-bk-close="rcImportModal" type="button">取消</button>
+        <button class="bk-btn primary" id="rcImportConfirm" type="button">导入</button>
       </footer>
     </div>
   </div>
@@ -4476,7 +4521,10 @@
         { label: "客户持仓", view: "position" },
         { label: "资金监控", view: "fundMonitor" }
       ],
-      risk: [{ label: "风险监控", view: "riskMargin" }],
+      risk: [
+        { label: "风控设置", view: "riskConfig" },
+        { label: "风险监控", view: "riskMargin" }
+      ],
       config: [{ label: "篮子管理", view: "basketConfig" }],
       system: [
         { label: "系统设置", view: "system", systemPanel: "settings" },
@@ -6491,17 +6539,21 @@
       const STATUS_COLOR = { "正常": "#2a7a5f", "预警": "#f3a932", "追保": "#ff8c1a", "强平": "#e05252" };
       const SWATCHES = ["#e05252", "#ff8c1a", "#f3a932", "#2f80ff", "#2a7a5f", "#9b59b6"];
 
+      /* 汇总 sheet：一行看全三项指标，不针对单一风控类型 */
+      const SUMMARY = "汇总";
+
       const COLUMNS = {
-        "维持担保比例": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "净资产", "交易保证金", "超额保证金", "待追保金额", "持仓市值", "持仓名本", "维持担保比例", "风控状态", "交易状态", "强平状态", "自动强平", "操作"],
-        "剩余流动性占比": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "保证金", "交易保证金", "超额保证金", "待追保金额", "持仓市值", "持仓名本", "剩余流动性占比", "风控状态", "交易状态", "自动强平", "操作"],
-        "保证金损耗比例": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "保证金", "持仓市值", "总盈亏", "保证金损耗比例", "待追保金额", "风控状态", "交易状态", "自动强平", "操作"]
+        "汇总": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "净资产", "交易保证金", "超额保证金", "待追保金额", "持仓市值", "持仓名本", "维持担保比例", "剩余流动性占比", "保证金损耗比例", "风控线", "风控状态", "交易状态", "自动强平"],
+        "维持担保比例": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "净资产", "交易保证金", "超额保证金", "待追保金额", "持仓市值", "持仓名本", "维持担保比例", "风控状态", "交易状态", "强平状态", "自动强平"],
+        "剩余流动性占比": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "保证金", "交易保证金", "超额保证金", "待追保金额", "持仓市值", "持仓名本", "剩余流动性占比", "风控状态", "交易状态", "自动强平"],
+        "保证金损耗比例": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "保证金", "持仓市值", "总盈亏", "保证金损耗比例", "待追保金额", "风控状态", "交易状态", "自动强平"]
       };
       const WIDTH = {
         "勾选": 40, "序号": 44, "资金账号名称": 196, "交易对手名称": 140, "交易账户": 112, "客户名": 130,
         "净资产": 132, "保证金": 132, "交易保证金": 132, "超额保证金": 132, "待追保金额": 132,
         "持仓市值": 132, "持仓名本": 132, "总盈亏": 132,
         "维持担保比例": 118, "剩余流动性占比": 124, "保证金损耗比例": 124,
-        "风控状态": 88, "交易状态": 92, "强平状态": 88, "自动强平": 80, "操作": 110
+        "风控线": 124, "风控状态": 88, "交易状态": 92, "强平状态": 88, "自动强平": 80
       };
 
       /* 持仓下钻列：单票维持担保比例仅在维持担保比例 sheet 出现 */
@@ -6530,7 +6582,7 @@
       /* ---------- 种子数据 ---------- */
       const accounts = [
         {
-          id: 1, fundName: "1000204-明星电销（购买力）", realFund: "JGH0000181", fundAccount: "JGH0000181",
+          id: 1, powerFund: "1000204-明星电销（购买力）", realFundName: "JGH0000181-明星电销", realFund: "JGH0000181", fundAccount: "JGH0000181",
           counterparty: "明星电销对手", tradeAccount: "T10000231", customer: "明星电销",
           framework: "收益互换标准框架", marginMode: "融资额度", leverage: 1.5,
           nav: 2026000, marginUsed: 1300000, margin: 1300000, totalPnl: -280000,
@@ -6541,7 +6593,7 @@
           ]
         },
         {
-          id: 2, fundName: "JGH0000180-UAT160TEST", realFund: "JGH0000180", fundAccount: "JGH0000180",
+          id: 2, realFundName: "JGH0000180-UAT160TEST", realFund: "JGH0000180", fundAccount: "JGH0000180",
           counterparty: "UAT160TEST对手", tradeAccount: "T10000155", customer: "UAT160TEST",
           framework: "收益互换标准框架", marginMode: "剩余", leverage: 1,
           nav: 101200, marginUsed: 60000, margin: 60000, totalPnl: -11000,
@@ -6551,7 +6603,7 @@
           ]
         },
         {
-          id: 3, fundName: "JGH0000177-孙熠宇", realFund: "JGH0000177", fundAccount: "JGH0000177",
+          id: 3, realFundName: "JGH0000177-孙熠宇", realFund: "JGH0000177", fundAccount: "JGH0000177",
           counterparty: "孙熠宇对手", tradeAccount: "T10000151", customer: "孙熠宇",
           framework: "收益互换标准框架", marginMode: "剩余", leverage: 1,
           nav: 3043000, marginUsed: 900000, margin: 900000, totalPnl: 120000,
@@ -6561,7 +6613,7 @@
           ]
         },
         {
-          id: 4, fundName: "JGH0000052-沈冰2", realFund: "JGH0000052", fundAccount: "JGH0000052",
+          id: 4, realFundName: "JGH0000052-沈冰2", realFund: "JGH0000052", fundAccount: "JGH0000052",
           counterparty: "沈冰2对手", tradeAccount: "T10000273", customer: "沈冰2",
           framework: "收益互换标准框架", marginMode: "剩余", leverage: 1,
           nav: 189400, marginUsed: 50000, margin: 50000, totalPnl: 8000,
@@ -6571,7 +6623,7 @@
           ]
         },
         {
-          id: 5, fundName: "1000042-姚玉倩（购买力）", realFund: "JGH0000182", fundAccount: "JGH0000182",
+          id: 5, powerFund: "1000042-姚玉倩（购买力）", realFundName: "JGH0000182-姚玉倩", realFund: "JGH0000182", fundAccount: "JGH0000182",
           counterparty: "姚玉倩对手", tradeAccount: "T10000188", customer: "姚玉倩",
           framework: "收益互换组合框架", marginMode: "融资额度", leverage: 2,
           nav: 4484700, marginUsed: 2400000, margin: 2400000, totalPnl: -620000,
@@ -6580,13 +6632,16 @@
           ]
         },
         {
-          id: 6, fundName: "JGH0000179-test_oms_8595", realFund: "JGH0000179", fundAccount: "JGH0000179",
+          id: 6, realFundName: "JGH0000179-test_oms_8595", realFund: "JGH0000179", fundAccount: "JGH0000179",
           counterparty: "test_oms_8595对手", tradeAccount: "T10000003", customer: "test_oms_8595",
           framework: "收益互换标准框架", marginMode: "剩余", leverage: 1,
           nav: 500000, marginUsed: 0, margin: 0, totalPnl: 0,
           positions: []
         }
       ];
+
+      /* 资金账号名称：有购买力账号时只显示购买力账号，没有则显示实际资金账号 */
+      accounts.forEach((acc) => { acc.fundName = acc.powerFund || acc.realFundName; });
 
       let ruleSeq = 0;
       const rules = [];
@@ -6679,7 +6734,7 @@
       const posHead = posTable.querySelector("thead");
       const posBody = posTable.querySelector("tbody");
       const HAS_BASKET_MODULE = !!document.querySelector("#view-basketConfig");
-      let activeMetric = "维持担保比例";
+      let activeMetric = SUMMARY;
       let statusFilter = "";
       let activeAccountId = accounts[0].id;
       let posChecked = new Set();
@@ -6692,11 +6747,27 @@
       const closeStatus = {};
       const liqConfig = { orderType: "限价单", side: "自动", priceType: "最新价", algo: "无算法" };
 
-      const canLiquidate = () => !!LIC[activeMetric].write;
+      /* 汇总 sheet 不绑定单一风控类型，任一类型有读写权限即可强平 */
+      const canLiquidate = () => (activeMetric === SUMMARY ? METRICS.some((m) => LIC[m].write) : !!LIC[activeMetric].write);
+      const metricsInScope = () => (activeMetric === SUMMARY ? METRICS : [activeMetric]);
 
       function statusPill(status, color) {
         return `<span class="rk-status-pill" style="background:${color}">${status}</span>`;
       }
+
+      /* 汇总行的风控状态取三项指标中最严重的一条，并记住命中的是哪个指标 */
+      function worstOf(snap) {
+        let worst = Object.assign({ metric: null }, snap.status[METRICS[0]]);
+        METRICS.forEach((m) => {
+          if (STATUS_ORDER[snap.status[m].status] > STATUS_ORDER[worst.status]) {
+            worst = Object.assign({ metric: m }, snap.status[m]);
+          }
+        });
+        if (worst.rule) worst.metric = worst.rule.metric;
+        return worst;
+      }
+
+      const statusOf = (snap) => (activeMetric === SUMMARY ? worstOf(snap) : snap.status[activeMetric]);
 
       /* 待追保金额：未触发风控线时为 0，触发时按当前触发阈值反算需追加的保证金 */
       function callAmount(metric, acc, d, rule) {
@@ -6707,11 +6778,11 @@
         return t === 0 ? 0 : (Math.abs(Math.min(0, acc.totalPnl)) - t * acc.margin) / t;
       }
 
-      const autoCloseOf = (acc) => rulesOf(acc, activeMetric).some((r) => r.autoClose);
+      const autoCloseOf = (acc) => metricsInScope().some((m) => rulesOf(acc, m).some((r) => r.autoClose));
 
       function cellFor(col, snap, index) {
         const { acc, d } = snap;
-        const evalResult = snap.status[activeMetric];
+        const evalResult = statusOf(snap);
         switch (col) {
           case "勾选": return `<td class="frz c0"><input type="checkbox" data-acc="${acc.id}"${accChecked.has(acc.id) ? " checked" : ""} /></td>`;
           case "序号": return `<td class="frz c1">${index + 1}</td>`;
@@ -6724,7 +6795,7 @@
           case "交易保证金": return `<td class="num">${fmtAmount(d.tradeMargin)}</td>`;
           case "超额保证金": return `<td class="num" style="color:${d.excess >= 0 ? "#f1f3f8" : "#ff8f8f"}">${fmtAmount(d.excess)}</td>`;
           case "待追保金额": {
-            const v = callAmount(activeMetric, acc, d, evalResult.rule);
+            const v = callAmount(evalResult.metric || activeMetric, acc, d, evalResult.rule);
             return `<td class="num" style="color:${v > 0 ? "#ff9a9a" : "#f1f3f8"}">${fmtAmount(Math.max(0, v))}</td>`;
           }
           case "持仓市值": return `<td class="num">${fmtAmount(d.posValue)}</td>`;
@@ -6732,13 +6803,16 @@
           case "总盈亏": return `<td class="num" style="color:${acc.totalPnl >= 0 ? "#ff5a0a" : "#14a58f"}">${fmtAmount(acc.totalPnl)}</td>`;
           case "维持担保比例":
           case "剩余流动性占比":
-          case "保证金损耗比例":
-            return `<td class="num" style="color:${evalResult.status === "正常" ? "#f1f3f8" : evalResult.color};font-weight:700">${pct(d.metrics[col])}</td>`;
+          case "保证金损耗比例": {
+            /* 汇总 sheet 里三列并排，各自按本指标的风控状态着色 */
+            const own = snap.status[col];
+            return `<td class="num" style="color:${own.status === "正常" ? "#f1f3f8" : own.color};font-weight:700">${pct(d.metrics[col])}</td>`;
+          }
+          case "风控线": return `<td>${evalResult.rule ? `${evalResult.rule.ruleName} ${evalResult.rule.threshold}%` : "--"}</td>`;
           case "风控状态": return `<td>${statusPill(evalResult.status, evalResult.color)}</td>`;
           case "交易状态": return `<td>${evalResult.rule ? evalResult.rule.measure : "正常"}</td>`;
           case "强平状态": return `<td>${closeStatus[acc.id] || CLOSE_STATUS.NONE}</td>`;
           case "自动强平": return `<td>${autoCloseOf(acc) ? "是" : "否"}</td>`;
-          case "操作": return `<td><div class="ops"><button class="bk-link" data-act="edit" type="button">编辑</button><button class="bk-link danger" data-act="del" type="button">删除</button></div></td>`;
           default: return `<td>--</td>`;
         }
       }
@@ -6752,10 +6826,16 @@
       }
 
       function riskSort(a, b) {
-        const dir = DIRECTION[activeMetric];
-        const sa = STATUS_ORDER[a.status[activeMetric].status];
-        const sb = STATUS_ORDER[b.status[activeMetric].status];
+        const wa = statusOf(a);
+        const wb = statusOf(b);
+        const sa = STATUS_ORDER[wa.status];
+        const sb = STATUS_ORDER[wb.status];
         if (sa !== sb) return sb - sa;
+        if (activeMetric === SUMMARY) {
+          /* 同风控状态时按待追保金额从高到低 */
+          return callAmount(wb.metric, b.acc, b.d, wb.rule) - callAmount(wa.metric, a.acc, a.d, wa.rule);
+        }
+        const dir = DIRECTION[activeMetric];
         const va = a.d.metrics[activeMetric];
         const vb = b.d.metrics[activeMetric];
         if (va === null) return 1;
@@ -6779,14 +6859,14 @@
         lastOrder = list.map((x) => x.acc.id);
         return list
           .filter(matchFilters)
-          .filter((s) => !statusFilter || s.status[activeMetric].status === statusFilter);
+          .filter((s) => !statusFilter || statusOf(s).status === statusFilter);
       }
 
       function renderOverview(all) {
         el("rkMtmTime").value = mtmTime;
         const counts = {};
         STATUSES.forEach((s) => { counts[s] = 0; });
-        all.forEach((x) => { counts[x.status[activeMetric].status] += 1; });
+        all.forEach((x) => { counts[statusOf(x).status] += 1; });
         el("rkStatusCards").innerHTML = STATUSES.map((s) => `
           <button class="rk-status-card${statusFilter === s ? " active" : ""}" data-status="${s}" type="button">
             ${s} <strong>${counts[s]}</strong> 户
@@ -6798,7 +6878,6 @@
         const batchBtn = el("rkBatchCloseAcc");
         batchBtn.disabled = !accChecked.size || !liqOk;
         batchBtn.title = liqOk ? "" : `当前无「风控 > 风控监测 > ${activeMetric}」读写权限，强平已禁用`;
-        el("rkDelRule").disabled = !accChecked.size;
         el("rkAccSummary").innerHTML = accChecked.size
           ? `已勾选 <b style="color:#fff">${accChecked.size}</b> 个账户`
           : "未勾选账户";
@@ -6854,7 +6933,7 @@
 
       /* ---------- 持仓下钻 ---------- */
       function posColumns() {
-        return POS_COLUMNS.filter((c) => c !== "单票维持担保比例" || activeMetric === "维持担保比例");
+        return POS_COLUMNS.filter((c) => c !== "单票维持担保比例" || activeMetric === "维持担保比例" || activeMetric === SUMMARY);
       }
 
       function renderDrill(snap) {
@@ -6931,6 +7010,9 @@
         return B.nowText().replace(/[-: ]/g, "");
       }
 
+      /* 汇总 sheet 强平时，备注里记命中的那个风控指标 */
+      const liqMetric = (snap) => (activeMetric === SUMMARY ? (worstOf(snap).metric || METRICS[0]) : activeMetric);
+
       /* 篮子名称：强平_资金账号名称或交易账户_YYYYMMDDHHMMSS */
       function buildLiqBasket(snap, picked, mode) {
         const byWeight = mode === "市值";
@@ -6961,7 +7043,7 @@
           mode,
           totalAmount: Math.round(totalValue),
           basketQty: 1,
-          remark: `风险监控强平（${activeMetric} ${pct(snap.d.metrics[activeMetric])}）`,
+          remark: `风险监控强平（${liqMetric(snap)} ${pct(snap.d.metrics[liqMetric(snap)])}）`,
           rows
         };
       }
@@ -7238,6 +7320,8 @@
 
       function focusAccount(accountId, metric) {
         document.querySelector('.nav-item[data-view="risk"]').click();
+        const tab = [...document.querySelectorAll(".top-subnav .subnav-item")].find((b) => b.dataset.view === "riskMargin");
+        if (tab) tab.click();
         if (metric && METRICS.includes(metric)) {
           activeMetric = metric;
           document.querySelectorAll("#rkSheets .rk-sheet").forEach((b) => b.classList.toggle("active", b.dataset.metric === metric));
@@ -7348,9 +7432,6 @@
         const tr = event.target.closest("tr[data-id]");
         if (!tr || event.target.dataset.acc) return;
         const acc = accounts.find((a) => a.id === Number(tr.dataset.id));
-        const act = event.target.dataset.act;
-        if (act === "edit") return openRuleModal("edit", acc);
-        if (act === "del") return deleteRules([acc]);
         activeAccountId = acc.id;
         posChecked = new Set();
         renderList();
@@ -7538,215 +7619,6 @@
         focusAccount(msg.accountId, msg.metric);
       });
 
-      /* ---------- 新增/编辑风控线 ---------- */
-      const ruleState = { mode: "create", editingId: null, account: null };
-      const ruleFunds = el("rkRuleFunds");
-      const ruleCps = el("rkRuleCounterparties");
-      const ruleAccounts = el("rkRuleAccounts");
-      const ruleName = el("rkRuleName");
-      const ruleStatus = el("rkRuleStatus");
-      const ruleColor = el("rkRuleColor");
-      const ruleThreshold = el("rkRuleThreshold");
-      const ruleMeasure = el("rkRuleMeasure");
-      const ruleAutoClose = el("rkRuleAutoClose");
-      const ruleAlert = el("rkRuleAlert");
-
-      ruleName.innerHTML = RULE_NAMES.map((n) => `<option value="${n}">${n}</option>`).join("");
-      ruleStatus.innerHTML = STATUSES.filter((s) => s !== "正常").map((s) => `<option value="${s}">${s}</option>`).join("");
-      ruleFunds.innerHTML = accounts.map((a) => `<option value="${a.id}">${a.fundName}</option>`).join("");
-      ruleCps.innerHTML = accounts.map((a) => `<option value="${a.id}">${a.counterparty}</option>`).join("");
-      ruleAccounts.innerHTML = accounts.map((a) => `<option value="${a.id}">${a.tradeAccount} ${a.customer}</option>`).join("");
-      el("rkRuleSwatches").innerHTML = SWATCHES.map((c) => `<button class="rk-color-swatch" data-color="${c}" style="background:${c}" type="button" aria-label="${c}"></button>`).join("");
-
-      el("rkRuleSwatches").addEventListener("click", (event) => {
-        const swatch = event.target.closest(".rk-color-swatch");
-        if (!swatch) return;
-        ruleColor.value = swatch.dataset.color;
-        syncSwatches();
-      });
-
-      function syncSwatches() {
-        document.querySelectorAll("#rkRuleSwatches .rk-color-swatch").forEach((s) => {
-          s.classList.toggle("active", s.dataset.color.toLowerCase() === ruleColor.value.toLowerCase());
-        });
-      }
-
-      ruleName.addEventListener("change", () => {
-        const map = { "预警线": "预警", "追保线": "追保", "强平线": "强平" };
-        ruleStatus.value = map[ruleName.value];
-        ruleColor.value = STATUS_COLOR[ruleStatus.value];
-        syncSwatches();
-      });
-
-      function selectedAccountIds() {
-        const ids = new Set();
-        [ruleFunds, ruleCps, ruleAccounts].forEach((sel) => {
-          [...sel.selectedOptions].forEach((o) => ids.add(Number(o.value)));
-        });
-        return [...ids];
-      }
-
-      function renderRuleList() {
-        const wrap = el("rkRuleListWrap");
-        const title = el("rkRuleListTitle");
-        if (ruleState.mode !== "edit" || !ruleState.account) {
-          wrap.style.display = "none";
-          title.style.display = "none";
-          return;
-        }
-        wrap.style.display = "";
-        title.style.display = "";
-        const list = rulesOf(ruleState.account, activeMetric);
-        const body = document.querySelector("#rkRuleListTable tbody");
-        body.innerHTML = list.length
-          ? list.map((r, i) => `
-            <tr${r.id === ruleState.editingId ? ' class="selected"' : ""}>
-              <td>${i + 1}</td><td>${r.ruleName}</td><td>${r.direction}</td>
-              <td class="num">${r.threshold}%</td><td>${r.measure}</td>
-              <td>${[r.autoClose ? "自动强平" : "", r.alert ? "风控提示" : ""].filter(Boolean).join("、") || "--"}</td>
-              <td>${statusPill(r.status, r.color)}</td>
-              <td><div class="ops"><button class="bk-link" data-load="${r.id}" type="button">载入</button><button class="bk-link danger" data-drop="${r.id}" type="button">删除</button></div></td>
-            </tr>`).join("")
-          : `<tr class="empty-row"><td colspan="8">该账户在本指标下暂无风控线，可直接在下方新增</td></tr>`;
-      }
-
-      document.querySelector("#rkRuleListTable tbody").addEventListener("click", (event) => {
-        const loadId = event.target.dataset.load;
-        const dropId = event.target.dataset.drop;
-        if (loadId) {
-          const rule = rules.find((r) => r.id === Number(loadId));
-          if (rule) loadRuleIntoForm(rule);
-          return;
-        }
-        if (dropId) {
-          const index = rules.findIndex((r) => r.id === Number(dropId));
-          if (index >= 0) {
-            const removed = rules.splice(index, 1)[0];
-            if (ruleState.editingId === removed.id) ruleState.editingId = null;
-            renderRuleList();
-            renderList();
-            B.toast(`已删除 ${removed.ruleName}（阈值 ${removed.threshold}%）`, "ok");
-          }
-        }
-      });
-
-      function loadRuleIntoForm(rule) {
-        ruleState.editingId = rule.id;
-        ruleName.value = rule.ruleName;
-        ruleThreshold.value = rule.threshold;
-        ruleMeasure.value = rule.measure;
-        ruleStatus.value = rule.status;
-        ruleColor.value = rule.color;
-        ruleAutoClose.checked = !!rule.autoClose;
-        ruleAlert.checked = !!rule.alert;
-        syncSwatches();
-        el("rkRuleFormTitle").textContent = `风控线设置（正在修改：${rule.ruleName}）`;
-        renderRuleList();
-      }
-
-      function setMultiSelection(ids) {
-        [ruleFunds, ruleCps, ruleAccounts].forEach((sel) => {
-          [...sel.options].forEach((o) => { o.selected = ids.includes(Number(o.value)); });
-        });
-      }
-
-      function openRuleModal(mode, acc) {
-        ruleState.mode = mode;
-        ruleState.account = acc || null;
-        ruleState.editingId = null;
-        el("rkRuleTitle").textContent = mode === "edit" ? `编辑风控线 — ${acc.tradeAccount}（${acc.customer}）` : "新增风控线";
-        el("rkRuleFormTitle").textContent = "风控线设置";
-        el("rkRuleMetric").value = activeMetric;
-        el("rkRuleDirection").value = DIRECTION[activeMetric];
-        ruleName.value = RULE_NAMES[0];
-        ruleStatus.value = "预警";
-        ruleColor.value = STATUS_COLOR["预警"];
-        ruleThreshold.value = "";
-        ruleMeasure.value = "限制买入";
-        ruleAutoClose.checked = false;
-        ruleAlert.checked = true;
-        setMultiSelection(acc ? [acc.id] : []);
-        [ruleFunds, ruleCps, ruleAccounts].forEach((sel) => { sel.disabled = mode === "edit"; });
-        syncSwatches();
-        renderRuleList();
-        openRkModal("rkRuleModal");
-      }
-
-      el("rkRuleConfirm").addEventListener("click", () => {
-        const threshold = Number(ruleThreshold.value);
-        if (!Number.isFinite(threshold) || threshold <= 0 || threshold > 999) {
-          return B.toast("请填写 1-999 之间的风控阈值", "error");
-        }
-        const payload = {
-          metric: activeMetric, direction: DIRECTION[activeMetric],
-          ruleName: ruleName.value, threshold, measure: ruleMeasure.value,
-          autoClose: ruleAutoClose.checked,
-          status: ruleStatus.value, color: ruleColor.value, alert: ruleAlert.checked
-        };
-
-        if (ruleState.editingId) {
-          const rule = rules.find((r) => r.id === ruleState.editingId);
-          const dup = rules.find((r) => r.id !== rule.id && r.metric === payload.metric && r.tradeAccount === rule.tradeAccount && r.threshold === threshold);
-          if (dup) return B.toast(`该账户已存在阈值为${threshold}%的风控线设置`, "error");
-          Object.assign(rule, payload);
-          closeRkModal("rkRuleModal");
-          renderList();
-          return B.toast(`已更新 ${rule.tradeAccount} 的${rule.ruleName}`, "ok");
-        }
-
-        const ids = ruleState.mode === "edit" ? [ruleState.account.id] : selectedAccountIds();
-        if (!ids.length) return B.toast("请至少选择一个账户", "error");
-        const conflict = ids.map((id) => accounts.find((a) => a.id === id))
-          .find((acc) => rules.some((r) => r.metric === payload.metric && r.tradeAccount === acc.tradeAccount && r.threshold === threshold));
-        if (conflict) return B.toast(`该账户已存在阈值为${threshold}%的风控线设置（${conflict.tradeAccount}）`, "error");
-
-        ids.forEach((id) => {
-          const acc = accounts.find((a) => a.id === id);
-          rules.push(Object.assign({
-            id: ++ruleSeq, fundName: acc.fundName, counterparty: acc.counterparty, tradeAccount: acc.tradeAccount
-          }, payload));
-        });
-        closeRkModal("rkRuleModal");
-        activeAccountId = ids[0];
-        renderList();
-        /* 新增后即时判定，若已触发则补发消息、浮窗，并按自动强平配置生成篮子 */
-        refreshTriggers();
-        B.toast(`已为 ${ids.length} 个交易账户新增${payload.ruleName}（阈值 ${threshold}%）`, "ok");
-      });
-
-      function deleteRules(targets) {
-        const list = targets.flatMap((acc) => rulesOf(acc, activeMetric));
-        if (!list.length) {
-          const names = targets.map((a) => a.tradeAccount).join("、");
-          return B.toast(`${names} 在「${activeMetric}」下没有风控线`, "error");
-        }
-        const scope = targets.length === 1
-          ? `<strong>${targets[0].tradeAccount}（${targets[0].customer}）</strong>`
-          : `<strong>${targets.length} 个交易账户</strong>`;
-        B.askConfirm(
-          "删除风控线",
-          `确定删除 ${scope} 在「${activeMetric}」下的全部风控线吗？`
-            + `<br /><span style="color:#ff9a9a">共 ${list.length} 条：${list.map((r) => `${r.tradeAccount} ${r.ruleName} ${r.threshold}%`).join("、")}</span>`
-            + `<br /><span style="color:#9ba1ae">删除后这些账户在本指标下不再参与风控判定。</span>`,
-          () => {
-            list.forEach((r) => {
-              const index = rules.indexOf(r);
-              if (index >= 0) rules.splice(index, 1);
-            });
-            knownTriggers = new Set(collectTriggers().map(triggerKey));
-            renderList();
-            B.toast(`已删除 ${list.length} 条风控线`, "ok");
-          }
-        );
-      }
-
-      el("rkAddRule").addEventListener("click", () => openRuleModal("create"));
-      el("rkDelRule").addEventListener("click", () => {
-        const targets = [...accChecked].map((id) => accounts.find((a) => a.id === id)).filter(Boolean);
-        if (!targets.length) return B.toast("请先勾选交易账户", "error");
-        deleteRules(targets);
-      });
-
       /* ---------- 强平篮子默认字段配置 + LIC 权限 ---------- */
       const cfgOrderType = el("rkCfgOrderType");
       const cfgSide = el("rkCfgSide");
@@ -7779,101 +7651,6 @@
         B.toast("强平篮子默认字段与权限配置已保存", "ok");
       });
 
-      /* ---------- 风控线导入 / 导入模板 ---------- */
-      const TEMPLATE_HEAD = ["资金账号名称/交易账户", "风控线名称", "风控阈值(%)", "交易措施", "自动强平", "风控提示", "风控颜色", "风控状态"];
-
-      el("rkExportTpl").addEventListener("click", () => {
-        const sample = accounts.slice(0, 2).map((a) => [a.tradeAccount, "预警线", 150, "限制买入", "否", "弹框提示、消息中心", STATUS_COLOR["预警"], "预警"]);
-        const csv = [TEMPLATE_HEAD, ...sample].map((row) => row.join(",")).join("\r\n");
-        const blob = new Blob([`\uFEFF${csv}`], { type: "application/vnd.ms-excel" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "风控线导入模板.xls";
-        link.click();
-        setTimeout(() => URL.revokeObjectURL(link.href), 2000);
-        B.askConfirm("保存成功", "「风控线导入模板.xls」已保存到本地下载目录。", () => {});
-      });
-
-      let importRows = [];
-
-      function parseImport(text) {
-        const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-        if (lines.length && lines[0].includes("风控线名称")) lines.shift();
-        return lines.map((line) => {
-          const cell = line.split(",").map((v) => v.trim());
-          const key = cell[0];
-          const acc = accounts.find((a) => a.tradeAccount === key || a.fundName === key || a.realFund === key);
-          const threshold = Number(cell[2]);
-          const row = {
-            key, acc, ruleName: cell[1] || RULE_NAMES[0], threshold,
-            measure: cell[3] || "限制买入", autoClose: cell[4] === "是",
-            alert: cell[5] !== "否",
-            color: cell[6] || "", status: cell[7] || "预警"
-          };
-          if (!acc) row.error = "账户不存在";
-          else if (!Number.isFinite(threshold) || threshold <= 0 || threshold > 999) row.error = "阈值需为 1-999";
-          else if (rules.some((r) => r.metric === activeMetric && r.tradeAccount === acc.tradeAccount && r.threshold === threshold)) {
-            row.error = `该账户已存在阈值为${threshold}%的风控线设置`;
-          }
-          if (!row.color) row.color = STATUS_COLOR[row.status] || STATUS_COLOR["预警"];
-          return row;
-        });
-      }
-
-      function renderImportPreview() {
-        const body = document.querySelector("#rkImportPreview tbody");
-        body.innerHTML = importRows.length
-          ? importRows.map((r, i) => `
-            <tr>
-              <td>${i + 1}</td><td>${r.key || "--"}</td><td>${r.ruleName}</td>
-              <td class="num">${Number.isFinite(r.threshold) ? `${r.threshold}%` : "--"}</td>
-              <td>${r.measure}</td><td>${r.autoClose ? "是" : "否"}</td><td>${r.status}</td>
-              <td style="color:${r.error ? "#ff9a9a" : "#6fd7ae"}">${r.error || "校验通过"}</td>
-            </tr>`).join("")
-          : `<tr class="empty-row"><td colspan="8">请选择文件</td></tr>`;
-        const ok = importRows.filter((r) => !r.error).length;
-        el("rkImportSummary").innerHTML = importRows.length
-          ? `共 ${importRows.length} 行，可导入 <b style="color:#fff">${ok}</b> 行，失败 ${importRows.length - ok} 行`
-          : "尚未选择文件";
-      }
-
-      el("rkImportRule").addEventListener("click", () => {
-        importRows = [];
-        el("rkImportFile").value = "";
-        renderImportPreview();
-        openRkModal("rkImportModal");
-      });
-
-      el("rkImportFile").addEventListener("change", (event) => {
-        const file = event.target.files && event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-          importRows = parseImport(String(reader.result || ""));
-          renderImportPreview();
-          const bad = importRows.find((r) => r.error && r.error.includes("已存在阈值"));
-          if (bad) B.toast(bad.error, "error");
-        };
-        reader.readAsText(file, "UTF-8");
-      });
-
-      el("rkImportConfirm").addEventListener("click", () => {
-        const valid = importRows.filter((r) => !r.error);
-        if (!valid.length) return B.toast("没有可导入的有效数据", "error");
-        valid.forEach((r) => {
-          rules.push({
-            id: ++ruleSeq, metric: activeMetric, direction: DIRECTION[activeMetric],
-            ruleName: r.ruleName, threshold: r.threshold, measure: r.measure,
-            autoClose: r.autoClose, status: r.status, color: r.color, alert: r.alert,
-            fundName: r.acc.fundName, counterparty: r.acc.counterparty, tradeAccount: r.acc.tradeAccount
-          });
-        });
-        closeRkModal("rkImportModal");
-        renderList();
-        refreshTriggers();
-        B.toast(`已导入 ${valid.length} 条风控线`, "ok");
-      });
-
       function refreshTriggers() {
         const current = collectTriggers();
         const newly = current.filter((t) => !knownTriggers.has(triggerKey(t)));
@@ -7890,6 +7667,522 @@
         messages.unshift(Object.assign({ id: ++msgSeq, time: mtmTime, read: false }, t));
       });
       renderMessages();
+      renderList();
+
+      /* 风控线的维护已迁至「风控 > 风控设置 > 事中风控」，此处仅对外提供共享数据与刷新入口 */
+      window.omsRisk = {
+        accounts, rules, METRICS, DIRECTION, RULE_NAMES, STATUSES, STATUS_COLOR, SWATCHES,
+        nextRuleId: () => ++ruleSeq,
+        rulesOf, statusPill,
+        refreshMonitor: renderList,
+        refreshTriggers
+      };
+    })();
+
+    /* ===== 风控设置 - 事中风控：风控线新增 / 编辑 / 删除 / 导入 ===== */
+    (function initRiskConfig() {
+      const view = document.querySelector("#view-riskConfig");
+      const R = window.omsRisk;
+      const B = window.omsBasket;
+      if (!view || !R || !B) return;
+
+      const el = (id) => document.querySelector(`#${id}`);
+      const { accounts, rules, METRICS, DIRECTION, RULE_NAMES, STATUSES, STATUS_COLOR, SWATCHES } = R;
+      /* 新增时若账户尚未绑定风控类型，仅允许在这两类中选择 */
+      const OPEN_METRICS = ["维持担保比例", "剩余流动性占比"];
+      const NAME_STATUS = { "预警线": "预警", "追保线": "追保", "强平线": "强平" };
+
+      const COLUMNS = ["勾选", "交易账户", "客户名称", "客户名", "资金账户号", "交易对手名称", "风控线名称", "风控类型", "风控方向", "风控阈值", "交易措施", "自动强平", "风控提示", "风控颜色", "风控状态", "操作"];
+      const WIDTH = {
+        "勾选": 40, "交易账户": 160, "客户名称": 200, "客户名": 120, "资金账户号": 130, "交易对手名称": 150,
+        "风控线名称": 100, "风控类型": 124, "风控方向": 80, "风控阈值": 88, "交易措施": 100,
+        "自动强平": 80, "风控提示": 80, "风控颜色": 110, "风控状态": 88, "操作": 110
+      };
+      /* 交易账户维度汇总行展示的字段，其余字段在展开的风控线明细行展示 */
+      const SUMMARY_COLS = ["交易账户", "客户名称", "客户名", "资金账户号", "交易对手名称"];
+
+      const table = el("rcTable");
+      const thead = table.querySelector("thead");
+      const tbody = table.querySelector("tbody");
+      let filters = { fundName: "", customer: "", tradeAccount: "", counterparty: "" };
+      let checked = new Set();
+      let collapsed = new Set();
+
+      const accOf = (rule) => accounts.find((a) => a.tradeAccount === rule.tradeAccount);
+
+      function matchFilters(rule) {
+        const acc = accOf(rule) || {};
+        const hit = (v, kw) => !kw || String(v ?? "").toLowerCase().includes(kw.toLowerCase());
+        return hit(rule.fundName, filters.fundName)
+          && hit(acc.customer, filters.customer)
+          && hit(rule.tradeAccount, filters.tradeAccount)
+          && hit(rule.counterparty, filters.counterparty);
+      }
+
+      const visibleRules = () => rules.filter(matchFilters);
+
+      function visibleGroups() {
+        const map = new Map();
+        visibleRules().forEach((rule) => {
+          if (!map.has(rule.tradeAccount)) map.set(rule.tradeAccount, []);
+          map.get(rule.tradeAccount).push(rule);
+        });
+        return [...map].map(([tradeAccount, list]) => ({ tradeAccount, list, acc: accOf(list[0]) || {}, first: list[0] }));
+      }
+
+      function groupCell(col, group) {
+        const open = !collapsed.has(group.tradeAccount);
+        const allChecked = group.list.every((r) => checked.has(r.id));
+        switch (col) {
+          case "勾选": return `<td class="frz c0"><input type="checkbox" data-group="${group.tradeAccount}"${allChecked ? " checked" : ""} /></td>`;
+          case "交易账户": return `<td class="frz c1" style="text-align:left">
+            <button class="rc-toggle${open ? " open" : ""}" data-toggle="${group.tradeAccount}" type="button" aria-label="${open ? "收起" : "展开"}">▸</button>
+            <span class="rc-group-name">${group.tradeAccount}</span> <span class="rc-group-cnt">(${group.list.length})</span>
+          </td>`;
+          case "客户名称": return `<td style="text-align:left">${group.first.fundName}</td>`;
+          case "客户名": return `<td>${group.acc.customer || "--"}</td>`;
+          case "资金账户号": return `<td>${group.acc.fundAccount || "--"}</td>`;
+          case "交易对手名称": return `<td>${group.first.counterparty}</td>`;
+          default: return `<td></td>`;
+        }
+      }
+
+      function ruleCell(col, rule) {
+        if (col === "勾选") return `<td class="frz c0"><input type="checkbox" data-rule="${rule.id}"${checked.has(rule.id) ? " checked" : ""} /></td>`;
+        if (col === "交易账户") return `<td class="frz c1"></td>`;
+        if (SUMMARY_COLS.includes(col)) return `<td></td>`;
+        switch (col) {
+          case "风控线名称": return `<td>${rule.ruleName}</td>`;
+          case "风控类型": return `<td>${rule.metric}</td>`;
+          case "风控方向": return `<td>${rule.direction}</td>`;
+          case "风控阈值": return `<td class="num">${rule.threshold}%</td>`;
+          case "交易措施": return `<td>${rule.measure}</td>`;
+          case "自动强平": return `<td>${rule.autoClose ? "是" : "否"}</td>`;
+          case "风控提示": return `<td>${rule.alert ? "是" : "否"}</td>`;
+          case "风控颜色": return `<td><span class="rc-color-cell"><i style="background:${rule.color}"></i>${rule.color}</span></td>`;
+          case "风控状态": return `<td>${R.statusPill(rule.status, rule.color)}</td>`;
+          case "操作": return `<td><div class="ops"><button class="bk-link" data-act="edit" type="button">编辑</button><button class="bk-link danger" data-act="del" type="button">删除</button></div></td>`;
+          default: return `<td>--</td>`;
+        }
+      }
+
+      function renderToolbar(groupCount, ruleCount) {
+        el("rcDelRule").disabled = !checked.size;
+        el("rcSummary").innerHTML = checked.size
+          ? `共 ${groupCount} 个交易账户 / ${ruleCount} 条风控线，已勾选 <b style="color:#fff">${checked.size}</b> 条`
+          : `共 ${groupCount} 个交易账户 / ${ruleCount} 条风控线`;
+      }
+
+      function renderList() {
+        table.style.minWidth = `${COLUMNS.reduce((s, c) => s + WIDTH[c], 0)}px`;
+        thead.innerHTML = `<tr>${COLUMNS.map((c) => {
+          const frz = c === "勾选" ? ' class="frz c0"' : c === "交易账户" ? ' class="frz c1"' : "";
+          const inner = c === "勾选" ? '<input type="checkbox" id="rcCheckAll" />' : c;
+          return `<th${frz} style="width:${WIDTH[c]}px">${inner}</th>`;
+        }).join("")}</tr>`;
+
+        const groups = visibleGroups();
+        const items = visibleRules();
+        renderToolbar(groups.length, items.length);
+        tbody.innerHTML = groups.length
+          ? groups.map((group) => {
+            const head = `<tr class="rc-group" data-group="${group.tradeAccount}">${COLUMNS.map((c) => groupCell(c, group)).join("")}</tr>`;
+            if (collapsed.has(group.tradeAccount)) return head;
+            return head + group.list.map((rule) => `<tr class="rc-child" data-id="${rule.id}">${COLUMNS.map((c) => ruleCell(c, rule)).join("")}</tr>`).join("");
+          }).join("")
+          : `<tr class="empty-row"><td colspan="${COLUMNS.length}">暂无符合条件的风控线</td></tr>`;
+        syncCheckAll(items);
+      }
+
+      function syncCheckAll(items) {
+        const checkAll = el("rcCheckAll");
+        if (checkAll) checkAll.checked = items.length > 0 && items.every((r) => checked.has(r.id));
+      }
+
+      /* 勾选只刷新汇总与分组头，避免整表重绘打断连续勾选 */
+      function syncSelection() {
+        const groups = visibleGroups();
+        const items = visibleRules();
+        renderToolbar(groups.length, items.length);
+        syncCheckAll(items);
+        groups.forEach((group) => {
+          const box = tbody.querySelector(`tr.rc-group[data-group="${group.tradeAccount}"] input[data-group]`);
+          if (box) box.checked = group.list.every((r) => checked.has(r.id));
+        });
+      }
+
+      /* ---------- 筛选 ---------- */
+      function applyFilters() {
+        filters = {
+          fundName: el("rcFilterFund").value.trim(),
+          customer: el("rcFilterCustomer").value.trim(),
+          tradeAccount: el("rcFilterAccount").value.trim(),
+          counterparty: el("rcFilterCounterparty").value.trim()
+        };
+        renderList();
+      }
+
+      const FILTER_IDS = ["rcFilterFund", "rcFilterCustomer", "rcFilterAccount", "rcFilterCounterparty"];
+      el("rcFilterApply").addEventListener("click", applyFilters);
+      el("rcFilterReset").addEventListener("click", () => {
+        FILTER_IDS.forEach((id) => { el(id).value = ""; });
+        applyFilters();
+      });
+      FILTER_IDS.forEach((id) => {
+        el(id).addEventListener("keydown", (event) => {
+          if (event.key === "Enter") applyFilters();
+        });
+      });
+
+      thead.addEventListener("change", (event) => {
+        if (event.target.id !== "rcCheckAll") return;
+        const ids = visibleRules().map((r) => r.id);
+        if (event.target.checked) ids.forEach((id) => checked.add(id));
+        else ids.forEach((id) => checked.delete(id));
+        renderList();
+      });
+
+      tbody.addEventListener("change", (event) => {
+        const ruleId = event.target.dataset.rule;
+        if (ruleId) {
+          if (event.target.checked) checked.add(Number(ruleId)); else checked.delete(Number(ruleId));
+          syncSelection();
+          return;
+        }
+        const groupKey = event.target.dataset.group;
+        if (!groupKey) return;
+        /* 汇总行勾选联动该交易账户下的全部风控线 */
+        const list = visibleRules().filter((r) => r.tradeAccount === groupKey);
+        list.forEach((r) => { if (event.target.checked) checked.add(r.id); else checked.delete(r.id); });
+        tbody.querySelectorAll(`tr.rc-child input[data-rule]`).forEach((box) => {
+          const rule = list.find((r) => r.id === Number(box.dataset.rule));
+          if (rule) box.checked = event.target.checked;
+        });
+        syncSelection();
+      });
+
+      /* ---------- 展开 / 收起 ---------- */
+      tbody.addEventListener("click", (event) => {
+        const row = event.target.closest("tr.rc-group");
+        if (!row || event.target.matches('input[type="checkbox"]')) return;
+        const key = row.dataset.group;
+        if (collapsed.has(key)) collapsed.delete(key); else collapsed.add(key);
+        renderList();
+      });
+
+      /* ---------- 新增 / 编辑弹框 ---------- */
+      const ruleState = { mode: "create", editingId: null };
+      const ruleFunds = el("rcRuleFunds");
+      const ruleCps = el("rcRuleCounterparties");
+      const ruleAccounts = el("rcRuleAccounts");
+      const ruleName = el("rcRuleName");
+      const ruleType = el("rcRuleType");
+      const ruleDirection = el("rcRuleDirection");
+      const ruleStatus = el("rcRuleStatus");
+      const ruleColor = el("rcRuleColor");
+      const ruleThreshold = el("rcRuleThreshold");
+      const ruleMeasure = el("rcRuleMeasure");
+      const ruleAutoClose = el("rcRuleAutoClose");
+      const ruleAlert = el("rcRuleAlert");
+      const options = (list) => list.map((v) => `<option value="${v}">${v}</option>`).join("");
+
+      ruleName.innerHTML = options(RULE_NAMES);
+      ruleStatus.innerHTML = options(STATUSES.filter((s) => s !== "正常"));
+      ruleFunds.innerHTML = accounts.map((a) => `<option value="${a.id}">${a.fundName}</option>`).join("");
+      ruleCps.innerHTML = accounts.map((a) => `<option value="${a.id}">${a.counterparty}</option>`).join("");
+      ruleAccounts.innerHTML = accounts.map((a) => `<option value="${a.id}">${a.tradeAccount} ${a.customer}</option>`).join("");
+      el("rcRuleSwatches").innerHTML = SWATCHES.map((c) => `<button class="rk-color-swatch" data-color="${c}" style="background:${c}" type="button" aria-label="${c}"></button>`).join("");
+      el("rcImportType").innerHTML = options(METRICS);
+
+      function syncSwatches() {
+        document.querySelectorAll("#rcRuleSwatches .rk-color-swatch").forEach((s) => {
+          s.classList.toggle("active", s.dataset.color.toLowerCase() === ruleColor.value.toLowerCase());
+        });
+      }
+
+      el("rcRuleSwatches").addEventListener("click", (event) => {
+        const swatch = event.target.closest(".rk-color-swatch");
+        if (!swatch) return;
+        ruleColor.value = swatch.dataset.color;
+        syncSwatches();
+      });
+
+      ruleName.addEventListener("change", () => {
+        ruleStatus.value = NAME_STATUS[ruleName.value];
+        ruleColor.value = STATUS_COLOR[ruleStatus.value];
+        syncSwatches();
+      });
+
+      ruleType.addEventListener("change", () => {
+        ruleDirection.value = DIRECTION[ruleType.value] || "";
+      });
+
+      function selectedAccountIds() {
+        const ids = new Set();
+        [ruleFunds, ruleCps, ruleAccounts].forEach((sel) => {
+          [...sel.selectedOptions].forEach((o) => ids.add(Number(o.value)));
+        });
+        return [...ids];
+      }
+
+      function setMultiSelection(ids) {
+        [ruleFunds, ruleCps, ruleAccounts].forEach((sel) => {
+          [...sel.options].forEach((o) => { o.selected = ids.includes(Number(o.value)); });
+        });
+      }
+
+      /* 风控类型：账户已绑定类型时只读展示，未绑定时可在维持担保比例/剩余流动性占比中选择 */
+      function syncRuleType() {
+        if (ruleState.mode === "edit") return;
+        const ids = selectedAccountIds();
+        const bound = METRICS.filter((m) => ids.some((id) => {
+          const acc = accounts.find((a) => a.id === id);
+          return acc && R.rulesOf(acc, m).length;
+        }));
+        if (bound.length) {
+          ruleType.innerHTML = options(bound);
+          ruleType.value = bound[0];
+          ruleType.disabled = true;
+        } else {
+          ruleType.innerHTML = options(OPEN_METRICS);
+          ruleType.value = OPEN_METRICS[0];
+          ruleType.disabled = false;
+        }
+        ruleDirection.value = DIRECTION[ruleType.value];
+      }
+
+      [ruleFunds, ruleCps, ruleAccounts].forEach((sel) => sel.addEventListener("change", syncRuleType));
+
+      function openRuleModal(mode, rule) {
+        ruleState.mode = mode;
+        ruleState.editingId = rule ? rule.id : null;
+        el("rcRuleTitle").textContent = mode === "edit"
+          ? `编辑风控线 — ${rule.tradeAccount}（${rule.ruleName} ${rule.threshold}%）`
+          : "新增风控线";
+        [ruleFunds, ruleCps, ruleAccounts].forEach((sel) => { sel.disabled = mode === "edit"; });
+
+        if (mode === "edit") {
+          const acc = accOf(rule);
+          setMultiSelection(acc ? [acc.id] : []);
+          ruleType.innerHTML = options([rule.metric]);
+          ruleType.value = rule.metric;
+          ruleType.disabled = true;
+          ruleDirection.value = rule.direction;
+          ruleName.value = rule.ruleName;
+          ruleThreshold.value = rule.threshold;
+          ruleMeasure.value = rule.measure;
+          ruleStatus.value = rule.status;
+          ruleColor.value = rule.color;
+          ruleAutoClose.checked = !!rule.autoClose;
+          ruleAlert.checked = !!rule.alert;
+        } else {
+          setMultiSelection([]);
+          ruleName.value = RULE_NAMES[0];
+          ruleStatus.value = NAME_STATUS[RULE_NAMES[0]];
+          ruleColor.value = STATUS_COLOR[ruleStatus.value];
+          ruleThreshold.value = "";
+          ruleMeasure.value = "限制买入";
+          ruleAutoClose.checked = false;
+          ruleAlert.checked = true;
+          syncRuleType();
+        }
+        syncSwatches();
+        openModal("rcRuleModal");
+      }
+
+      function openModal(id) {
+        const modal = el(id);
+        modal.classList.add("open");
+        modal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeModal(id) {
+        const modal = el(id);
+        modal.classList.remove("open");
+        modal.setAttribute("aria-hidden", "true");
+      }
+
+      el("rcAddRule").addEventListener("click", () => openRuleModal("create"));
+
+      el("rcRuleConfirm").addEventListener("click", () => {
+        const threshold = Number(ruleThreshold.value);
+        if (!Number.isFinite(threshold) || threshold <= 0 || threshold > 999) {
+          return B.toast("请填写 1-999 之间的风控阈值", "error");
+        }
+        const metric = ruleType.value;
+        const payload = {
+          metric, direction: DIRECTION[metric],
+          ruleName: ruleName.value, threshold, measure: ruleMeasure.value,
+          autoClose: ruleAutoClose.checked, alert: ruleAlert.checked,
+          status: ruleStatus.value, color: ruleColor.value
+        };
+
+        if (ruleState.mode === "edit") {
+          const rule = rules.find((r) => r.id === ruleState.editingId);
+          if (!rule) return;
+          const dup = rules.find((r) => r.id !== rule.id && r.metric === payload.metric && r.tradeAccount === rule.tradeAccount && r.threshold === threshold);
+          if (dup) return B.toast(`该账户已存在阈值为${threshold}%的风控线设置`, "error");
+          Object.assign(rule, payload);
+          closeModal("rcRuleModal");
+          refreshAll();
+          return B.toast(`已更新 ${rule.tradeAccount} 的${rule.ruleName}`, "ok");
+        }
+
+        const ids = selectedAccountIds();
+        if (!ids.length) return B.toast("请至少选择一个账户", "error");
+        const conflict = ids.map((id) => accounts.find((a) => a.id === id))
+          .find((acc) => rules.some((r) => r.metric === payload.metric && r.tradeAccount === acc.tradeAccount && r.threshold === threshold));
+        if (conflict) return B.toast(`该账户已存在阈值为${threshold}%的风控线设置（${conflict.tradeAccount}）`, "error");
+
+        ids.forEach((id) => {
+          const acc = accounts.find((a) => a.id === id);
+          rules.push(Object.assign({
+            id: R.nextRuleId(), fundName: acc.fundName, counterparty: acc.counterparty, tradeAccount: acc.tradeAccount
+          }, payload));
+        });
+        closeModal("rcRuleModal");
+        refreshAll();
+        R.refreshTriggers();
+        B.toast(`已为 ${ids.length} 个交易账户新增${payload.ruleName}（阈值 ${threshold}%）`, "ok");
+      });
+
+      /* ---------- 删除 ---------- */
+      function dropRules(list) {
+        if (!list.length) return B.toast("请先勾选风控线", "error");
+        B.askConfirm(
+          "删除风控线",
+          `确定删除选中的 <strong>${list.length}</strong> 条风控线吗？`
+            + `<br /><span style="color:#ff9a9a">${list.map((r) => `${r.tradeAccount} ${r.metric} ${r.ruleName} ${r.threshold}%`).join("、")}</span>`
+            + `<br /><span style="color:#9ba1ae">删除后这些账户在对应风控类型下不再按此风控线判定。</span>`,
+          () => {
+            list.forEach((r) => {
+              const index = rules.indexOf(r);
+              if (index >= 0) rules.splice(index, 1);
+              checked.delete(r.id);
+            });
+            refreshAll();
+            R.refreshTriggers();
+            B.toast(`已删除 ${list.length} 条风控线`, "ok");
+          }
+        );
+      }
+
+      el("rcDelRule").addEventListener("click", () => {
+        dropRules(rules.filter((r) => checked.has(r.id)));
+      });
+
+      tbody.addEventListener("click", (event) => {
+        const tr = event.target.closest("tr[data-id]");
+        if (!tr) return;
+        const rule = rules.find((r) => r.id === Number(tr.dataset.id));
+        if (!rule) return;
+        const act = event.target.dataset.act;
+        if (act === "edit") openRuleModal("edit", rule);
+        if (act === "del") dropRules([rule]);
+      });
+
+      /* ---------- 导入 / 导入模板 ---------- */
+      const TEMPLATE_HEAD = ["资金账号名称/交易账户", "风控线名称", "风控阈值(%)", "交易措施", "自动强平", "风控提示", "风控颜色", "风控状态"];
+
+      el("rcExportTpl").addEventListener("click", () => {
+        const sample = accounts.slice(0, 2).map((a) => [a.tradeAccount, "预警线", 150, "限制买入", "否", "是", STATUS_COLOR["预警"], "预警"]);
+        const csv = [TEMPLATE_HEAD, ...sample].map((row) => row.join(",")).join("\r\n");
+        const blob = new Blob([`\uFEFF${csv}`], { type: "application/vnd.ms-excel" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "风控线导入模板.xls";
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 2000);
+        B.askConfirm("保存成功", "「风控线导入模板.xls」已保存到本地下载目录。", () => {});
+      });
+
+      let importRows = [];
+
+      function parseImport(text) {
+        const metric = el("rcImportType").value || METRICS[0];
+        const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        if (lines.length && lines[0].includes("风控线名称")) lines.shift();
+        return lines.map((line) => {
+          const cell = line.split(",").map((v) => v.trim());
+          const key = cell[0];
+          const acc = accounts.find((a) => a.tradeAccount === key || a.fundName === key || a.realFund === key);
+          const threshold = Number(cell[2]);
+          const row = {
+            key, acc, metric, ruleName: cell[1] || RULE_NAMES[0], threshold,
+            measure: cell[3] || "限制买入", autoClose: cell[4] === "是",
+            alert: cell[5] !== "否", color: cell[6] || "", status: cell[7] || "预警"
+          };
+          if (!acc) row.error = "账户不存在";
+          else if (!Number.isFinite(threshold) || threshold <= 0 || threshold > 999) row.error = "阈值需为 1-999";
+          else if (rules.some((r) => r.metric === metric && r.tradeAccount === acc.tradeAccount && r.threshold === threshold)) {
+            row.error = `该账户已存在阈值为${threshold}%的风控线设置`;
+          }
+          if (!row.color) row.color = STATUS_COLOR[row.status] || STATUS_COLOR["预警"];
+          return row;
+        });
+      }
+
+      function renderImportPreview() {
+        const body = document.querySelector("#rcImportPreview tbody");
+        body.innerHTML = importRows.length
+          ? importRows.map((r, i) => `
+            <tr>
+              <td>${i + 1}</td><td>${r.key || "--"}</td><td>${r.ruleName}</td>
+              <td class="num">${Number.isFinite(r.threshold) ? `${r.threshold}%` : "--"}</td>
+              <td>${r.measure}</td><td>${r.autoClose ? "是" : "否"}</td><td>${r.status}</td>
+              <td style="color:${r.error ? "#ff9a9a" : "#6fd7ae"}">${r.error || "校验通过"}</td>
+            </tr>`).join("")
+          : `<tr class="empty-row"><td colspan="8">请选择文件</td></tr>`;
+        const ok = importRows.filter((r) => !r.error).length;
+        el("rcImportSummary").innerHTML = importRows.length
+          ? `共 ${importRows.length} 行，可导入 <b style="color:#fff">${ok}</b> 行，失败 ${importRows.length - ok} 行`
+          : "尚未选择文件";
+      }
+
+      el("rcImportRule").addEventListener("click", () => {
+        importRows = [];
+        el("rcImportFile").value = "";
+        el("rcImportType").value = METRICS[0];
+        renderImportPreview();
+        openModal("rcImportModal");
+      });
+
+      el("rcImportFile").addEventListener("change", (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          importRows = parseImport(String(reader.result || ""));
+          renderImportPreview();
+          const bad = importRows.find((r) => r.error && r.error.includes("已存在阈值"));
+          if (bad) B.toast(bad.error, "error");
+        };
+        reader.readAsText(file, "UTF-8");
+      });
+
+      el("rcImportConfirm").addEventListener("click", () => {
+        const valid = importRows.filter((r) => !r.error);
+        if (!valid.length) return B.toast("没有可导入的有效数据", "error");
+        valid.forEach((r) => {
+          rules.push({
+            id: R.nextRuleId(), metric: r.metric, direction: DIRECTION[r.metric],
+            ruleName: r.ruleName, threshold: r.threshold, measure: r.measure,
+            autoClose: r.autoClose, status: r.status, color: r.color, alert: r.alert,
+            fundName: r.acc.fundName, counterparty: r.acc.counterparty, tradeAccount: r.acc.tradeAccount
+          });
+        });
+        closeModal("rcImportModal");
+        refreshAll();
+        R.refreshTriggers();
+        B.toast(`已导入 ${valid.length} 条风控线`, "ok");
+      });
+
+      /* 风控线变更后同步刷新风险监控列表 */
+      function refreshAll() {
+        renderList();
+        R.refreshMonitor();
+      }
+
       renderList();
     })();
 

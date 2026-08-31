@@ -1780,6 +1780,21 @@
       background: #0f1119;
     }
 
+    /* 风控线新增/编辑：字段竖直单列摆放 */
+    .bk-form-grid.bk-form-stack {
+      grid-template-columns: 1fr;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .bk-form-grid.bk-form-stack .bk-field {
+      grid-template-columns: 110px 1fr;
+    }
+
+    .bk-form-grid.bk-form-stack .rk-field-tall {
+      align-items: start;
+    }
+
     .bk-field {
       display: grid;
       grid-template-columns: 92px 1fr;
@@ -1791,6 +1806,14 @@
     .bk-field.wide { grid-column: span 2; }
     .bk-field .bk-value { color: #eef1f7; }
     .bk-field .bk-value.em { color: #ffb454; font-weight: 700; }
+
+    .bk-select:disabled,
+    .bk-input:disabled,
+    .bk-input[readonly].is-muted {
+      opacity: 0.45;
+      cursor: not-allowed;
+      color: #6d7581;
+    }
 
     .bk-hint {
       padding: 6px 12px;
@@ -4037,26 +4060,27 @@
             <input class="bk-input" id="bkOrderTotalAmount" inputmode="decimal" placeholder="N(12,4)" />
           </div>
           <div class="bk-field">
-            <span class="bk-label">委托方向</span>
-            <select class="bk-select" id="bkOrderSide">
-              <option value="按篮子配置">按篮子配置</option>
-              <option value="全部买入">全部买入</option>
-              <option value="全部卖出">全部卖出</option>
+            <span class="bk-label">订单类型</span>
+            <select class="bk-select" id="bkOrderOrderType">
+              <option value="限价单">限价单</option>
+              <option value="市价单">市价单</option>
             </select>
           </div>
           <div class="bk-field">
+            <span class="bk-label">订单方向</span>
+            <select class="bk-select" id="bkOrderSide">
+              <option value="按篮子配置">按篮子配置</option>
+              <option value="买入">买入</option>
+              <option value="卖出">卖出</option>
+              <option value="买开">买开</option>
+              <option value="卖平">卖平</option>
+              <option value="卖开">卖开</option>
+              <option value="买平">买平</option>
+            </select>
+          </div>
+          <div class="bk-field" id="bkOrderPriceTypeField">
             <span class="bk-label">价格类型</span>
             <select class="bk-select" id="bkOrderPriceType"></select>
-          </div>
-          <div class="bk-field">
-            <span class="bk-label">实时价格</span>
-            <div class="rk-check-row">
-              <label><input type="checkbox" id="bkOrderPriceLive" />按行情实时取价</label>
-            </div>
-          </div>
-          <div class="bk-field" id="bkOrderTickField">
-            <span class="bk-label">偏离tick</span>
-            <input class="bk-input" id="bkOrderPriceTicks" inputmode="numeric" placeholder="±N" value="0" />
           </div>
           <div class="bk-field">
             <span class="bk-label">算法类型</span>
@@ -4086,8 +4110,7 @@
                 <th style="width:92px">对冲渠道</th>
                 <th style="width:82px">订单类型</th>
                 <th style="width:132px">标的代码</th>
-                <th style="width:76px">订单方向</th>
-                <th style="width:92px">开平标识</th>
+                <th style="width:92px">订单方向</th>
                 <th style="width:88px">价格类型</th>
                 <th style="width:88px">委托价格</th>
                 <th style="width:92px">委托数量</th>
@@ -4133,7 +4156,7 @@
         <button class="bk-dialog-close" data-bk-close="rcRuleModal" type="button" aria-label="关闭">×</button>
       </header>
       <div class="bk-dialog-body">
-        <div class="bk-form-grid">
+        <div class="bk-form-grid bk-form-stack">
           <div class="bk-field rk-field-tall">
             <span class="bk-label">资金账号名称</span>
             <select class="rk-multi" id="rcRuleFunds" multiple></select>
@@ -4165,6 +4188,7 @@
           <div class="bk-field">
             <span class="bk-label">交易措施</span>
             <select class="bk-select" id="rcRuleMeasure">
+              <option value="无措施">无措施</option>
               <option value="限制买入">限制买入</option>
               <option value="禁止交易">禁止交易</option>
             </select>
@@ -4176,7 +4200,7 @@
           <div class="bk-field">
             <span class="bk-label">自动强平</span>
             <div class="rk-check-row">
-              <label><input type="checkbox" id="rcRuleAutoClose" />触发后自动生成篮子并下单</label>
+              <label><input type="checkbox" id="rcRuleAutoClose" /></label>
             </div>
           </div>
           <div class="bk-field">
@@ -4188,7 +4212,7 @@
           <div class="bk-field">
             <span class="bk-label">风控颜色</span>
             <div class="rk-color-row">
-              <input type="color" id="rcRuleColor" value="#f3a932" style="width:34px;height:22px;border:1px solid #2b303d;background:#0d0f16;padding:0" />
+              <input type="color" id="rcRuleColor" value="#4ABF6A" style="width:34px;height:22px;border:1px solid #2b303d;background:#0d0f16;padding:0" />
               <div class="rk-color-swatches" id="rcRuleSwatches"></div>
             </div>
           </div>
@@ -4231,26 +4255,27 @@
                 <input class="bk-input" id="rkMbTotal" inputmode="decimal" placeholder="N(12,4)" />
               </div>
               <div class="bk-field">
-                <span class="bk-label">委托方向</span>
-                <select class="bk-select" id="rkMbSide">
-                  <option value="按篮子配置">按篮子配置</option>
-                  <option value="全部买入">全部买入</option>
-                  <option value="全部卖出">全部卖出</option>
+                <span class="bk-label">订单类型</span>
+                <select class="bk-select" id="rkMbOrderType">
+                  <option value="限价单">限价单</option>
+                  <option value="市价单">市价单</option>
                 </select>
               </div>
               <div class="bk-field">
+                <span class="bk-label">订单方向</span>
+                <select class="bk-select" id="rkMbSide">
+                  <option value="按篮子配置">按篮子配置</option>
+                  <option value="买入">买入</option>
+                  <option value="卖出">卖出</option>
+                  <option value="买开">买开</option>
+                  <option value="卖平">卖平</option>
+                  <option value="卖开">卖开</option>
+                  <option value="买平">买平</option>
+                </select>
+              </div>
+              <div class="bk-field" id="rkMbPriceTypeField">
                 <span class="bk-label">价格类型</span>
                 <select class="bk-select" id="rkMbPriceType"></select>
-              </div>
-              <div class="bk-field">
-                <span class="bk-label">实时价格</span>
-                <div class="rk-check-row">
-                  <label><input type="checkbox" id="rkMbPriceLive" />按行情实时取价</label>
-                </div>
-              </div>
-              <div class="bk-field" id="rkMbTickField">
-                <span class="bk-label">偏离tick</span>
-                <input class="bk-input" id="rkMbPriceTicks" inputmode="numeric" placeholder="±N" value="0" />
               </div>
               <div class="bk-field">
                 <span class="bk-label">算法类型</span>
@@ -4265,7 +4290,6 @@
                 <input class="bk-input" id="rkMbMark" value="强平委托" readonly />
               </div>
             </div>
-            <div class="bk-hint" id="rkMbHint"></div>
             <div class="bk-table-wrap">
               <table class="bk-table" id="rkMbTable" style="min-width:1620px">
                 <thead>
@@ -4277,8 +4301,7 @@
                     <th style="width:140px">框架名称</th>
                     <th style="width:96px">订单类型</th>
                     <th style="width:160px">标的代码</th>
-                    <th style="width:92px">委托方向</th>
-                    <th style="width:118px">开平标识</th>
+                    <th style="width:92px">订单方向</th>
                     <th style="width:104px">价格类型</th>
                     <th style="width:96px">委托价格</th>
                     <th style="width:104px">委托数量</th>
@@ -5363,7 +5386,8 @@
       const POOLS = ["--", "SP0001", "SP0002"];
       const HEDGES = ["--", "柜台渠道", "算法渠道", "DMA渠道"];
       const ORDER_TYPES = ["限价单", "市价单"];
-      const SIDES = ["买入", "卖出"];
+      /* 订单方向：概览含「按篮子配置」，明细用下列枚举（开平已并入方向，不再单独展示开平标识） */
+      const SIDES = ["买入", "卖出", "买开", "卖平", "卖开", "买平"];
       const OFFSETS = ["--", "自动（优先平今）", "开仓", "平仓", "平今"];
       const ACTIVE_STATUS = new Set(["待报", "已报", "部成", "待撤"]);
 
@@ -5531,7 +5555,7 @@
         },
         {
           id: ++runSeq, name: "强平篮子-市值权重", alloc: ALLOC_WEIGHT, basketQty: 0, totalAmount: 2000000,
-          sideMode: "全部卖出", priceMode: "买一价", algoMode: BY_BASKET,
+          sideMode: "卖出", priceMode: "买一价", algoMode: BY_BASKET,
           createdAt: "2026-07-27 10:05:44", stoppedAt: "",
           orders: [
             orderOf({ code: "000001.SZ", weight: 20, qty: 35100, filledQty: 35100, filledPrice: 11.36, status: "已成" }),
@@ -5576,18 +5600,39 @@
       /* ---------- 表单控件片段 ---------- */
       function selectCell(field, index, options, value, disabled) {
         /* 外部（如保证金监测强平）带入的账户可能不在码表内，补一个选项避免静默改值 */
-        const list = value != null && !options.includes(value) ? [value, ...options] : options;
-        const opts = list.map((o) => `<option value="${o}"${o === value ? " selected" : ""}>${o}</option>`).join("");
+        const list = value != null && value !== "" && !options.includes(value) ? [value, ...options] : options;
+        const blank = value === "" || value == null;
+        const opts = (blank ? `<option value="" selected></option>` : "")
+          + list.map((o) => `<option value="${o}"${!blank && o === value ? " selected" : ""}>${o}</option>`).join("");
         return `<select class="bk-select" data-field="${field}" data-idx="${index}"${disabled ? " disabled" : ""}>${opts}</select>`;
       }
 
-      function symbolCell(index, value) {
+      function symbolCell(index, value, disabled) {
         const opts = codes.map((c) => `<option value="${c}"${c === value ? " selected" : ""}>${c} ${INSTRUMENTS[c].name}</option>`).join("");
-        return `<select class="bk-select" data-field="code" data-idx="${index}">${opts}</select>`;
+        return `<select class="bk-select" data-field="code" data-idx="${index}"${disabled ? " disabled" : ""}>${opts}</select>`;
       }
 
       function numCell(field, index, value, readonly) {
-        return `<input class="bk-input" style="text-align:right" data-field="${field}" data-idx="${index}" inputmode="decimal" value="${value}"${readonly ? " readonly" : ""} />`;
+        const muted = readonly ? " is-muted" : "";
+        return `<input class="bk-input${muted}" style="text-align:right" data-field="${field}" data-idx="${index}" inputmode="decimal" value="${value}"${readonly ? " readonly disabled" : ""} />`;
+      }
+
+      function isMarketOrder(orderType) {
+        return orderType === "市价单";
+      }
+
+      /* 市价单：价格类型/委托价格置空展示；限价单：恢复可编辑 */
+      function applyOrderTypeToRow(row, orderType) {
+        row.orderType = orderType;
+        if (isMarketOrder(orderType)) {
+          row.priceType = "";
+          return;
+        }
+        if (!row.priceType) {
+          row.priceType = "最新价";
+          const res = resolvePrice(row.code, row.priceType, row.price);
+          row.price = res.missing ? 0 : res.price;
+        }
       }
 
       /* ---------- 配置-篮子管理 ---------- */
@@ -5768,14 +5813,19 @@
             row.biz = it.biz === "期货" ? "期货" : row.biz === "期货" ? "收益互换" : row.biz;
             row.offset = it.biz === "期货" ? (row.offset === "--" ? "平仓" : row.offset) : "--";
           }
+          if (field === "orderType") {
+            applyOrderTypeToRow(row, el.value);
+          }
           if (field === "code" || field === "priceType") {
-            const res = resolvePrice(row.code, row.priceType, row.price);
-            if (res.missing) {
-              toast(`标的${row.code}没有${res.missing}停价，请调整价格类型`, "error");
-              row.priceType = "最新价";
-              row.price = inst(row.code).last;
-            } else {
-              row.price = res.price;
+            if (!isMarketOrder(row.orderType) && row.priceType) {
+              const res = resolvePrice(row.code, row.priceType, row.price);
+              if (res.missing) {
+                toast(`标的${row.code}没有${res.missing}停价，请调整价格类型`, "error");
+                row.priceType = "最新价";
+                row.price = inst(row.code).last;
+              } else {
+                row.price = res.price;
+              }
             }
           }
           afterChange();
@@ -6002,21 +6052,20 @@
       });
 
       /* ---------- 篮子下单 ---------- */
-      const orderState = { name: "", alloc: ALLOC_QTY, rows: [], basketQty: 1, totalAmount: 0, sideMode: BY_BASKET, priceMode: BY_BASKET, algoMode: BY_BASKET, priceLive: false, priceTicks: 0, checked: new Set() };
+      const orderState = { name: "", alloc: ALLOC_QTY, rows: [], basketQty: 1, totalAmount: 0, orderType: "限价单", sideMode: BY_BASKET, priceMode: BY_BASKET, algoMode: BY_BASKET, checked: new Set() };
       const orderBody = document.querySelector("#bkOrderTable tbody");
       const orderCheckAll = document.querySelector("#bkOrderCheckAll");
       const orderBasketQty = document.querySelector("#bkOrderBasketQty");
       const orderTotalAmount = document.querySelector("#bkOrderTotalAmount");
+      const orderOrderType = document.querySelector("#bkOrderOrderType");
       const orderSide = document.querySelector("#bkOrderSide");
       const orderPriceType = document.querySelector("#bkOrderPriceType");
       const orderAlgo = document.querySelector("#bkOrderAlgo");
-      const orderPriceLive = document.querySelector("#bkOrderPriceLive");
-      const orderPriceTicks = document.querySelector("#bkOrderPriceTicks");
 
       orderPriceType.innerHTML = [BY_BASKET].concat(PRICE_TYPES.filter((p) => p !== "指定价")).map((p) => `<option value="${p}">${p}</option>`).join("");
       orderAlgo.innerHTML = [BY_BASKET].concat(ALGOS).map((a) => `<option value="${a}">${a}</option>`).join("");
 
-      /* 勾选实时价格后，委托价格按行情价再偏离 N 个 ticksize */
+      /* 兼容强平篮子等外部调用：保留 tick 偏移能力，概览已不再暴露实时价格入口 */
       function applyTickOffset(row, live, ticks) {
         const it = inst(row.code);
         if (!live || !it || !row.price) return;
@@ -6029,10 +6078,11 @@
           const it = inst(r.code);
           const mult = it?.mult || 1;
           const unit = it?.minUnit || 1;
-          const res = resolvePrice(r.code, r.priceType, r.price);
-          r.missing = res.missing || null;
+          const market = isMarketOrder(r.orderType);
+          /* 市价单界面置空，内部仍按最新价估算数量/金额 */
+          const res = resolvePrice(r.code, market ? "最新价" : (r.priceType || "最新价"), r.price);
+          r.missing = market ? null : (res.missing || null);
           r.price = res.missing ? 0 : res.price;
-          applyTickOffset(r, orderState.priceLive, orderState.priceTicks);
           if (isWeight) {
             const amount = num(orderState.totalAmount) * num(r.weight) / 100;
             const raw = r.price > 0 ? amount / (r.price * mult) : 0;
@@ -6052,9 +6102,10 @@
       function renderOrderRows() {
         computeOrderRows();
         const isWeight = orderState.alloc === ALLOC_WEIGHT;
+        const overviewMarket = isMarketOrder(orderState.orderType);
         document.querySelector("#bkOrderQtyField").style.display = isWeight ? "none" : "";
         document.querySelector("#bkOrderAmountField").style.display = isWeight ? "" : "none";
-        document.querySelector("#bkOrderTickField").style.display = orderState.priceLive ? "" : "none";
+        document.querySelector("#bkOrderPriceTypeField").style.display = overviewMarket ? "none" : "";
         const checkedRows = orderCheckedRows();
         const est = checkedRows.reduce((s, r) => s + num(r.estAmount), 0);
         document.querySelector("#bkOrderEstAmount").textContent = `${fmtAmount(est)} CNY`;
@@ -6066,20 +6117,23 @@
           document.querySelector("#bkOrderWeightSum").textContent = "";
         }
         const invalidCount = checkedRows.filter((r) => r.invalid).length;
-        document.querySelector("#bkOrderHint").innerHTML = [
-          isWeight
-            ? '委托数量 = <span class="warn">总委托金额 × 权重 ÷（委托价格 × 合约乘数）</span>，按 minTradeUnit / lotSize 向下取整；'
-            : '委托数量 = <span class="warn">明细委托数量 × 篮子数量</span>；',
-          '概览的委托方向 / 价格类型 / 算法类型改为非「按篮子配置」时，明细整列同步刷新；勾选实时价格后委托价格按行情实时取价并偏离设定的 tick 数，明细价格不可手工改。',
-          invalidCount ? `<span class="bad">当前有 ${invalidCount} 笔无效委托（数量为 0 或无行情价），下单时将不予发送。</span>` : ""
-        ].join(" ");
+        const hint = document.querySelector("#bkOrderHint");
+        if (invalidCount) {
+          hint.style.display = "";
+          hint.innerHTML = `<span class="bad">当前有 ${invalidCount} 笔无效委托（数量为 0 或无行情价），下单时将不予发送。</span>`;
+        } else {
+          hint.style.display = "none";
+          hint.innerHTML = "";
+        }
         document.querySelector("#bkOrderSummary").textContent = `已勾选 ${checkedRows.length} / ${orderState.rows.length} 项`;
         orderCheckAll.checked = orderState.rows.length > 0 && checkedRows.length === orderState.rows.length;
         if (!orderState.rows.length) {
-          orderBody.innerHTML = `<tr class="empty-row"><td colspan="17">篮子明细为空</td></tr>`;
+          orderBody.innerHTML = `<tr class="empty-row"><td colspan="16">篮子明细为空</td></tr>`;
           return;
         }
-        orderBody.innerHTML = orderState.rows.map((r, i) => `
+        orderBody.innerHTML = orderState.rows.map((r, i) => {
+          const market = isMarketOrder(r.orderType);
+          return `
           <tr${r.invalid ? ' class="invalid-row"' : orderState.checked.has(r.key) ? ' class="selected"' : ""}>
             <td class="frz c0"><input type="checkbox" data-check="${r.key}"${orderState.checked.has(r.key) ? " checked" : ""} /></td>
             <td class="frz c1">${i + 1}</td>
@@ -6088,51 +6142,50 @@
             <td>${r.account}</td>
             <td>${r.pool}</td>
             <td>${r.hedge}</td>
-            <td>${r.orderType}</td>
+            <td>${selectCell("orderType", i, ORDER_TYPES, r.orderType)}</td>
             <td style="text-align:left">${r.code} ${inst(r.code)?.name || ""}</td>
             <td>${selectCell("side", i, SIDES, r.side)}</td>
-            <td>${r.offset}</td>
-            <td>${selectCell("priceType", i, PRICE_TYPES, r.priceType)}</td>
-            <td>${numCell("price", i, r.missing ? "--" : fmtPrice(r.price, r.code), orderState.priceLive || r.priceType !== "指定价")}</td>
+            <td>${selectCell("priceType", i, PRICE_TYPES, market ? "" : r.priceType, market)}</td>
+            <td>${numCell("price", i, market ? "" : (r.missing ? "--" : fmtPrice(r.price, r.code)), market || r.priceType !== "指定价")}</td>
             <td>${numCell("baseQty", i, isWeight ? fmtQty(r.calcQty) : r.baseQty, isWeight)}</td>
             <td>${numCell("weight", i, isWeight ? num(r.weight).toFixed(2) : "--", !isWeight)}</td>
             <td>${selectCell("algo", i, ALGOS, r.algo)}</td>
             <td><button class="bk-link danger" data-del="${i}" type="button">删除</button></td>
-          </tr>`).join("");
+          </tr>`;
+        }).join("");
       }
 
       function openOrder(basket, prefill) {
         orderState.name = basket.name;
         orderState.alloc = basket.alloc;
+        orderState.orderType = "限价单";
         orderState.sideMode = BY_BASKET;
         orderState.priceMode = BY_BASKET;
         orderState.algoMode = BY_BASKET;
         orderState.basketQty = prefill?.basketQty || 1;
         orderState.totalAmount = prefill?.totalAmount || (basket.alloc === ALLOC_WEIGHT ? 1000000 : 0);
         orderState.rows = basket.rows.map((r, i) => Object.assign({}, r, { key: `k${i}`, baseQty: num(r.qty) }));
+        orderState.rows.forEach((r) => applyOrderTypeToRow(r, orderState.orderType));
         orderState.checked = new Set(orderState.rows.map((r) => r.key));
         document.querySelector("#bkOrderName").value = basket.name;
         document.querySelector("#bkOrderAlloc").value = basket.alloc;
         orderBasketQty.value = orderState.basketQty;
         orderTotalAmount.value = orderState.totalAmount;
+        orderOrderType.value = orderState.orderType;
         orderSide.value = BY_BASKET;
         orderPriceType.value = BY_BASKET;
         orderAlgo.value = BY_BASKET;
-        orderState.priceLive = false;
-        orderState.priceTicks = 0;
-        orderPriceLive.checked = false;
-        orderPriceTicks.value = "0";
         renderOrderRows();
         openModal("bkOrderModal");
       }
 
-      orderPriceLive.addEventListener("change", () => {
-        orderState.priceLive = orderPriceLive.checked;
-        renderOrderRows();
-      });
-
-      orderPriceTicks.addEventListener("input", () => {
-        orderState.priceTicks = Math.trunc(num(orderPriceTicks.value));
+      orderOrderType.addEventListener("change", () => {
+        orderState.orderType = orderOrderType.value;
+        orderState.rows.forEach((r) => applyOrderTypeToRow(r, orderState.orderType));
+        if (isMarketOrder(orderState.orderType)) {
+          orderState.priceMode = BY_BASKET;
+          orderPriceType.value = BY_BASKET;
+        }
         renderOrderRows();
       });
 
@@ -6163,8 +6216,7 @@
       orderSide.addEventListener("change", () => {
         orderState.sideMode = orderSide.value;
         if (orderState.sideMode !== BY_BASKET) {
-          const side = orderState.sideMode === "全部买入" ? "买入" : "卖出";
-          orderState.rows.forEach((r) => { r.side = side; });
+          orderState.rows.forEach((r) => { r.side = orderState.sideMode; });
         }
         renderOrderRows();
       });
@@ -6464,6 +6516,9 @@
         bindRowEditing,
         selectCell,
         symbolCell,
+        isMarketOrder,
+        applyOrderTypeToRow,
+        applyTickOffset,
         numCell,
         INSTRUMENTS,
         ALLOC_QTY,
@@ -6496,7 +6551,7 @@
       const STATUSES = ["正常", "预警", "追保", "强平"];
       const STATUS_ORDER = { "正常": 0, "预警": 1, "追保": 2, "强平": 3 };
       const STATUS_COLOR = { "正常": "#2a7a5f", "预警": "#f3a932", "追保": "#ff8c1a", "强平": "#e05252" };
-      const SWATCHES = ["#e05252", "#ff8c1a", "#f3a932", "#2f80ff", "#2a7a5f", "#9b59b6"];
+      const SWATCHES = ["#4ABF6A", "#66FF66", "#FFF04D", "#FF9845", "#FF0000"];
 
       /* 汇总 sheet：一行看全三项指标，不针对单一风控类型 */
       const SUMMARY = "汇总";
@@ -7026,10 +7081,10 @@
 
       function computeBasket(basket) {
         basket.rows.forEach((r) => {
-          const res = B.resolvePrice(r.code, r.priceType, r.price);
-          r.missing = res.missing || null;
+          const market = B.isMarketOrder(r.orderType);
+          const res = B.resolvePrice(r.code, market ? "最新价" : (r.priceType || "最新价"), r.price);
+          r.missing = market ? null : (res.missing || null);
           r.price = res.missing ? 0 : res.price;
-          B.applyTickOffset(r, mbState.priceLive, mbState.priceTicks);
         });
         resolveQty(basket);
         basket.rows.forEach((r) => {
@@ -7064,21 +7119,20 @@
       }
 
       /* ---------- 多账户强平弹框 ---------- */
-      const mbState = { baskets: [], index: 0, sideMode: B.BY_BASKET, priceMode: B.BY_BASKET, algoMode: B.BY_BASKET, priceLive: false, priceTicks: 0 };
+      const mbState = { baskets: [], index: 0, orderType: "限价单", sideMode: B.BY_BASKET, priceMode: B.BY_BASKET, algoMode: B.BY_BASKET };
 
       function openMultiBasket(baskets) {
         mbState.baskets = baskets;
         mbState.index = 0;
+        mbState.orderType = liqConfig.orderType || "限价单";
         mbState.sideMode = B.BY_BASKET;
         mbState.priceMode = B.BY_BASKET;
         mbState.algoMode = B.BY_BASKET;
-        mbState.priceLive = false;
-        mbState.priceTicks = 0;
+        baskets.forEach((b) => b.rows.forEach((r) => B.applyOrderTypeToRow(r, mbState.orderType)));
+        el("rkMbOrderType").value = mbState.orderType;
         el("rkMbSide").value = B.BY_BASKET;
         el("rkMbPriceType").value = B.BY_BASKET;
         el("rkMbAlgo").value = B.BY_BASKET;
-        el("rkMbPriceLive").checked = false;
-        el("rkMbPriceTicks").value = "0";
         renderMultiBasket();
         openRkModal("rkMultiBasketModal");
       }
@@ -7102,7 +7156,7 @@
         const current = list[mbState.index];
         el("rkMbForm").style.display = current ? "" : "none";
         if (!current) {
-          body.innerHTML = `<tr class="empty-row"><td colspan="15">全部篮子已下单</td></tr>`;
+          body.innerHTML = `<tr class="empty-row"><td colspan="14">全部篮子已下单</td></tr>`;
           el("rkMbSummary").textContent = "";
           el("rkMbSend").disabled = true;
           el("rkMbSendAll").disabled = true;
@@ -7110,45 +7164,43 @@
         }
         computeBasket(current);
         const byWeight = current.alloc === B.ALLOC_WEIGHT;
+        const overviewMarket = B.isMarketOrder(mbState.orderType);
         el("rkMbName").value = current.name;
         el("rkMbAlloc").value = current.alloc;
         el("rkMbTotal").value = current.totalAmount;
         el("rkMbQty").value = current.basketQty;
+        el("rkMbOrderType").value = mbState.orderType;
         el("rkMbTotalField").style.display = byWeight ? "" : "none";
         el("rkMbQtyField").style.display = byWeight ? "none" : "";
-        el("rkMbTickField").style.display = mbState.priceLive ? "" : "none";
+        el("rkMbPriceTypeField").style.display = overviewMarket ? "none" : "";
         el("rkMbEstAmount").textContent = `${fmtAmount(current.rows.reduce((s, r) => s + num(r.estAmount), 0))} CNY`;
 
+        /* 业务类型 / 资金账号 / 交易账户 / 框架名称 / 标的代码 不可修改 */
         body.innerHTML = current.rows.length
-          ? current.rows.map((r, i) => `
+          ? current.rows.map((r, i) => {
+            const market = B.isMarketOrder(r.orderType);
+            return `
             <tr>
               <td class="frz c0">${i + 1}</td>
-              <td>${B.selectCell("biz", i, B.BIZ_TYPES, r.biz)}</td>
-              <td>${B.selectCell("fund", i, B.FUNDS, r.fund)}</td>
-              <td>${B.selectCell("account", i, B.ACCOUNTS, r.account)}</td>
-              <td>${B.selectCell("hedge", i, B.HEDGES, r.hedge)}</td>
+              <td>${r.biz}</td>
+              <td style="text-align:left">${r.fund}</td>
+              <td>${r.account}</td>
+              <td>${r.hedge}</td>
               <td>${B.selectCell("orderType", i, B.ORDER_TYPES, r.orderType)}</td>
-              <td>${B.symbolCell(i, r.code)}</td>
+              <td style="text-align:left">${r.code} ${instOf(r.code)?.name || ""}</td>
               <td>${B.selectCell("side", i, B.SIDES, r.side)}</td>
-              <td>${B.selectCell("offset", i, B.OFFSETS, r.offset)}</td>
-              <td>${B.selectCell("priceType", i, B.PRICE_TYPES, r.priceType)}</td>
-              <td>${B.numCell("price", i, r.missing ? "--" : fmtPrice(r.price, r.code), mbState.priceLive || r.priceType !== "指定价")}</td>
+              <td>${B.selectCell("priceType", i, B.PRICE_TYPES, market ? "" : r.priceType, market)}</td>
+              <td>${B.numCell("price", i, market ? "" : (r.missing ? "--" : fmtPrice(r.price, r.code)), market || r.priceType !== "指定价")}</td>
               <td>${B.numCell("qty", i, byWeight ? fmtQty(r.calcQty) : r.qty, byWeight)}</td>
               <td>${B.numCell("weight", i, byWeight ? num(r.weight).toFixed(2) : "--", !byWeight)}</td>
               <td>${B.selectCell("algo", i, B.ALGOS, r.algo)}</td>
               <td><button class="bk-link danger" data-del="${i}" type="button">删除</button></td>
-            </tr>`).join("")
-          : `<tr class="empty-row"><td colspan="15">该篮子明细已被全部删除</td></tr>`;
+            </tr>`;
+          }).join("")
+          : `<tr class="empty-row"><td colspan="14">该篮子明细已被全部删除</td></tr>`;
 
         const invalid = current.rows.filter((r) => !r.calcQty).length;
         const weightSum = current.rows.reduce((s, r) => s + num(r.weight), 0);
-        el("rkMbHint").innerHTML = [
-          byWeight
-            ? '委托数量 = <span class="warn">总委托金额 × 权重 ÷（委托价格 × 合约乘数）</span>，按 minTradeUnit / lotSize 向下取整；'
-            : '明细的委托数量为<span class="warn">单份数量</span>，实际委托数量 = 明细委托数量 × 篮子数量；',
-          '概览的委托方向 / 价格类型 / 算法类型改为非「按篮子配置」时，当前篮子明细整列同步刷新；勾选实时价格后委托价格按行情取价并偏离设定的 tick 数。',
-          invalid ? `<span class="bad">当前有 ${invalid} 笔无效委托（数量为 0 或无行情价），下单时将不予发送。</span>` : ""
-        ].join(" ");
         el("rkMbSummary").innerHTML = `当前篮子 ${mbState.index + 1}/${list.length}，共 ${current.rows.length} 笔`
           + (byWeight ? `，权重合计 <b style="color:${Math.abs(weightSum - 100) < 0.005 ? "#6fd7ae" : "#ffb454"}">${weightSum.toFixed(2)}%</b>` : "")
           + (invalid ? `，<span style="color:#ff9a9a">${invalid} 笔委托数量为 0，将不予发送</span>` : "");
@@ -7464,18 +7516,28 @@
         renderMultiBasket();
       });
 
-      /* 概览的委托方向 / 价格类型 / 算法类型改为非「按篮子配置」时，当前篮子明细整列同步 */
+      /* 概览的订单方向 / 价格类型 / 算法类型改为非「按篮子配置」时，当前篮子明细整列同步 */
       el("rkMbPriceType").innerHTML = [B.BY_BASKET]
         .concat(B.PRICE_TYPES.filter((p) => p !== "指定价"))
         .map((p) => `<option value="${p}">${p}</option>`).join("");
       el("rkMbAlgo").innerHTML = [B.BY_BASKET].concat(B.ALGOS).map((a) => `<option value="${a}">${a}</option>`).join("");
 
+      el("rkMbOrderType").addEventListener("change", () => {
+        mbState.orderType = el("rkMbOrderType").value;
+        const current = currentBasket();
+        if (current) current.rows.forEach((r) => B.applyOrderTypeToRow(r, mbState.orderType));
+        if (B.isMarketOrder(mbState.orderType)) {
+          mbState.priceMode = B.BY_BASKET;
+          el("rkMbPriceType").value = B.BY_BASKET;
+        }
+        renderMultiBasket();
+      });
+
       el("rkMbSide").addEventListener("change", () => {
         mbState.sideMode = el("rkMbSide").value;
         const current = currentBasket();
         if (current && mbState.sideMode !== B.BY_BASKET) {
-          const side = mbState.sideMode === "全部买入" ? "买入" : "卖出";
-          current.rows.forEach((r) => { r.side = side; });
+          current.rows.forEach((r) => { r.side = mbState.sideMode; });
         }
         renderMultiBasket();
       });
@@ -7501,16 +7563,6 @@
         if (current && mbState.algoMode !== B.BY_BASKET) {
           current.rows.forEach((r) => { r.algo = mbState.algoMode; });
         }
-        renderMultiBasket();
-      });
-
-      el("rkMbPriceLive").addEventListener("change", () => {
-        mbState.priceLive = el("rkMbPriceLive").checked;
-        renderMultiBasket();
-      });
-
-      el("rkMbPriceTicks").addEventListener("input", () => {
-        mbState.priceTicks = Math.trunc(num(el("rkMbPriceTicks").value));
         renderMultiBasket();
       });
 

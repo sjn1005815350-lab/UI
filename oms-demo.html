@@ -1094,7 +1094,7 @@
     #view-position .pos-tip.show { display: inline; }
 
     #view-position .table-wrap {
-      height: calc(100% - 104px);
+      height: calc(100% - 72px);
       overflow: auto;
       background: #090a0f;
     }
@@ -1139,8 +1139,8 @@
     #view-position tbody tr.active { background: var(--row-active); }
     #view-position tbody tr:hover { background: #213c66; }
     #view-position .empty-row td { height: 140px; color: #8f96a3; text-align: center; }
-    #view-position tbody td.positive, #view-position .summary-bar .positive { color: #ff5a0a; }
-    #view-position tbody td.negative, #view-position .summary-bar .negative { color: #14a58f; }
+    #view-position tbody td.positive { color: #ff5a0a; }
+    #view-position tbody td.negative { color: #14a58f; }
     #view-position .right { text-align: right; }
 
     #view-position .bottom-scroll {
@@ -1156,20 +1156,6 @@
       border-radius: 8px;
       background: #313541;
     }
-
-    #view-position .summary-bar {
-      height: 32px;
-      display: flex;
-      align-items: center;
-      gap: 28px;
-      padding: 0 14px;
-      border-top: 1px solid var(--line);
-      background: #10131b;
-      color: #c4cad5;
-      white-space: nowrap;
-    }
-
-    #view-position .summary-bar strong { color: #fff; font-weight: 700; }
 
     /* ===== 系统页面 ===== */
     #view-system {
@@ -2782,8 +2768,8 @@
     .fm-table tbody tr.fm-row.expanded td { border-bottom-color: #2a4f88; }
     .fm-table tbody tr.fm-row { cursor: pointer; }
     .fm-table td.num { text-align: right; }
-    .fm-table td.up, .fm-up { color: #ff5a0a; }
-    .fm-table td.down, .fm-down { color: #14a58f; }
+    .fm-table td.up { color: #ff5a0a; }
+    .fm-table td.down { color: #14a58f; }
     .fm-table .empty-row td { height: 140px; color: #8f96a3; text-align: center; }
 
     .fm-expand-btn {
@@ -2849,21 +2835,6 @@
     .fm-sub-table td.num { text-align: right; }
     .fm-sub-table td.up { color: #ff5a0a; }
     .fm-sub-table td.down { color: #14a58f; }
-
-    .fm-summary {
-      display: flex;
-      align-items: center;
-      gap: 26px;
-      min-height: 32px;
-      padding: 0 12px;
-      border-top: 1px solid #292d38;
-      background: #10131b;
-      color: #c4cad5;
-      white-space: nowrap;
-      overflow: auto;
-    }
-
-    .fm-summary strong { color: #fff; }
 
     .fm-cfg-tabs {
       display: flex;
@@ -3411,7 +3382,6 @@
             </table>
             <div class="bottom-scroll"><div class="fake-scrollbar"></div></div>
           </div>
-          <div class="summary-bar" id="summaryBar">汇总：<strong>0</strong> 条</div>
         </div>
       </section>
 
@@ -3447,7 +3417,6 @@
               <tbody></tbody>
             </table>
           </div>
-          <div class="fm-summary" id="fmSummary"></div>
         </div>
       </section>
 
@@ -5038,7 +5007,6 @@
       const detailToggle = root.querySelector("#detailToggle");
       const posTip = root.querySelector("#posTip");
       const filterSummary = root.querySelector("#filterSummary");
-      const summaryBar = root.querySelector("#summaryBar");
       let activeAsset = "证券";
 
       const numberFields = new Set(["可用数量","持仓数量","成本价","持仓均价","最新价","持仓盈亏","市值","持仓市值","期初数量","交易冻结数量","日内开仓成交数量","日内平仓成交数量","日间开仓数量","日间平仓数量","持仓净价","持仓全价","券面总额（万）","成分数量","开仓均价","平仓盈亏","单位待实现利率收益"]);
@@ -5223,14 +5191,6 @@
         }).join("");
       }
 
-      function renderSummary(items) {
-        const tq = items.reduce((s, i) => s + parseNumber(i.values["持仓数量"]), 0);
-        const ta = items.reduce((s, i) => s + parseNumber(i.values["可用数量"]), 0);
-        const tm = items.reduce((s, i) => s + parseNumber(i.values["市值"]), 0);
-        const tp = items.reduce((s, i) => s + parseNumber(i.values["持仓盈亏"]), 0);
-        summaryBar.innerHTML = `汇总：<strong>${items.length}</strong> 条 持仓数量 <strong>${tq.toLocaleString("zh-CN")}</strong> 可用数量 <strong>${ta.toLocaleString("zh-CN")}</strong> 市值 <strong>${tm.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> 持仓盈亏 <strong class="${tp >= 0 ? "positive" : "negative"}">${tp.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>`;
-      }
-
       let visibleItems = [];
 
       function renderTable() {
@@ -5241,7 +5201,6 @@
         visibleItems = items;
         renderHeader(fields);
         renderBody(items, fields);
-        renderSummary(items);
         syncToggles();
         const viewName = detailOnly.checked ? "持仓明细" : onlyHedge ? "对冲方" : "";
         filterSummary.textContent = viewName ? `${viewName} ${items.length} 条` : `共 ${items.length} 条`;
@@ -8196,7 +8155,6 @@
       const thead = table.querySelector("thead");
       const tbody = table.querySelector("tbody");
       const countEl = document.querySelector("#fmCount");
-      const summaryEl = document.querySelector("#fmSummary");
       const filterEls = [...view.querySelectorAll("[data-fm-filter]")];
       const notify = (msg, type) => (window.omsBasket && window.omsBasket.toast ? window.omsBasket.toast(msg, type) : null);
       const esc = (v) => String(v == null ? "" : v).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" })[c]);
@@ -8421,14 +8379,7 @@
           }).join("");
         }
 
-        const sum = (field) => list.reduce((s, r) => s + Number(r.values[field] || 0), 0);
-        const pnl = sum("总盈亏");
         countEl.textContent = `共 ${list.length} 条`;
-        summaryEl.innerHTML = `汇总：<strong>${list.length}</strong> 个资金账户`
-          + `　可用资金 <strong>${fmtMoney(sum("可用资金"))}</strong>`
-          + `　净资产 <strong>${fmtMoney(sum("净资产"))}</strong>`
-          + `　持仓市值 <strong>${fmtMoney(sum("持仓市值"))}</strong>`
-          + `　总盈亏 <strong class="${pnl >= 0 ? "fm-up" : "fm-down"}">${fmtMoney(pnl)}</strong>`;
       }
 
       /* ---------- 列宽调整：母表 / 子表分别生效 ---------- */

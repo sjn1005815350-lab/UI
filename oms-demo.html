@@ -3569,7 +3569,6 @@
                 <button data-close-mode="数量" type="button">按数量强平</button>
               </span>
             </span>
-            <button class="bk-btn" id="rkLiqConfig" type="button">强平篮子配置</button>
             <span class="bk-spacer"></span>
             <span class="bk-count" id="rkAccSummary">未勾选账户</span>
           </div>
@@ -3590,9 +3589,9 @@
 
           <div class="bk-split-bottom">
             <div class="bk-section-title">
-              <span id="rkPosTitle">持仓下钻</span>
+              <span id="rkPosTitle">客户持仓</span>
               <span style="display:flex;align-items:center;gap:10px">
-                <span class="bk-count" id="rkPosSummary">点击上方任一账户行下钻持仓</span>
+                <span class="bk-count" id="rkPosSummary">点击上方任一账户行查看客户持仓</span>
                 <span class="bk-menu-wrap">
                   <button class="bk-btn danger" id="rkBatchClose" type="button" disabled>批量强平持仓 ⌄</button>
                   <span class="bk-menu right" id="rkBatchMenu">
@@ -4322,45 +4321,6 @@
         <button class="bk-btn" data-bk-close="rkMultiBasketModal" type="button">取消</button>
         <button class="bk-btn" id="rkMbSendAll" type="button">一键下单</button>
         <button class="bk-btn primary" id="rkMbSend" type="button">下单</button>
-      </footer>
-    </div>
-  </div>
-
-  <!-- 强平篮子默认字段配置 -->
-  <div class="bk-modal" id="rkLiqConfigModal" aria-hidden="true">
-    <div class="bk-dialog narrow" role="dialog" aria-modal="true" aria-labelledby="rkLiqCfgTitle">
-      <header class="bk-dialog-header">
-        <span id="rkLiqCfgTitle">强平篮子默认字段配置</span>
-        <button class="bk-dialog-close" data-bk-close="rkLiqConfigModal" type="button" aria-label="关闭">×</button>
-      </header>
-      <div class="bk-dialog-body">
-        <div class="bk-hint">批量强平生成篮子时，以下字段按此配置带入；委托方向选「自动」时按持仓方向推导（股票卖出、期货多头卖空头买）。</div>
-        <div class="bk-form-grid">
-          <div class="bk-field">
-            <span class="bk-label">订单类型</span>
-            <select class="bk-select" id="rkCfgOrderType"></select>
-          </div>
-          <div class="bk-field">
-            <span class="bk-label">委托方向</span>
-            <select class="bk-select" id="rkCfgSide"></select>
-          </div>
-          <div class="bk-field">
-            <span class="bk-label">价格类型</span>
-            <select class="bk-select" id="rkCfgPriceType"></select>
-          </div>
-          <div class="bk-field">
-            <span class="bk-label">算法类型</span>
-            <select class="bk-select" id="rkCfgAlgo"></select>
-          </div>
-        </div>
-        <div class="bk-section-title"><span>LIC / 网厅权限（演示开关）</span></div>
-        <div class="bk-hint">对应「风控 &gt; 风控监测 &gt; 各指标」的读写权限，无读写权限时该 sheet 的强平按钮置灰。</div>
-        <div class="rk-check-row" id="rkCfgLic" style="padding:2px 0 6px"></div>
-      </div>
-      <footer class="bk-dialog-footer">
-        <span class="bk-spacer"></span>
-        <button class="bk-btn" data-bk-close="rkLiqConfigModal" type="button">取消</button>
-        <button class="bk-btn primary" id="rkCfgConfirm" type="button">确定</button>
       </footer>
     </div>
   </div>
@@ -6557,20 +6517,20 @@
       const SUMMARY = "汇总";
 
       const COLUMNS = {
-        "汇总": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "净资产", "交易保证金", "超额保证金", "待追保金额", "持仓市值", "持仓名本", "维持担保比例", "剩余流动性占比", "保证金损耗比例", "风控线", "风控状态", "交易状态", "自动强平"],
-        "维持担保比例": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "净资产", "交易保证金", "超额保证金", "待追保金额", "持仓市值", "持仓名本", "维持担保比例", "风控状态", "交易状态", "强平状态", "自动强平"],
-        "剩余流动性占比": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "保证金", "交易保证金", "超额保证金", "待追保金额", "持仓市值", "持仓名本", "剩余流动性占比", "风控状态", "交易状态", "自动强平"],
+        "汇总": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "净资产", "交易保证金", "待追保金额", "持仓市值", "持仓名本", "维持担保比例", "剩余流动性占比", "保证金损耗比例", "风控线", "风控状态", "交易状态", "自动强平"],
+        "维持担保比例": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "净资产", "交易保证金", "待追保金额", "持仓市值", "持仓名本", "维持担保比例", "风控状态", "交易状态", "强平状态", "自动强平"],
+        "剩余流动性占比": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "保证金", "交易保证金", "待追保金额", "持仓市值", "持仓名本", "剩余流动性占比", "风控状态", "交易状态", "自动强平"],
         "保证金损耗比例": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "保证金", "持仓市值", "总盈亏", "保证金损耗比例", "待追保金额", "风控状态", "交易状态", "自动强平"]
       };
       const WIDTH = {
         "勾选": 40, "序号": 44, "资金账号名称": 196, "交易对手名称": 140, "交易账户": 112, "客户名": 130,
-        "净资产": 132, "保证金": 132, "交易保证金": 132, "超额保证金": 132, "待追保金额": 132,
+        "净资产": 132, "保证金": 132, "交易保证金": 132, "待追保金额": 132,
         "持仓市值": 132, "持仓名本": 132, "总盈亏": 132,
         "维持担保比例": 118, "剩余流动性占比": 124, "保证金损耗比例": 124,
         "风控线": 124, "风控状态": 88, "交易状态": 92, "强平状态": 88, "自动强平": 80
       };
 
-      /* 持仓下钻列：单票维持担保比例仅在维持担保比例 sheet 出现 */
+      /* 客户持仓列：单票维持担保比例仅在维持担保比例 sheet 出现 */
       const POS_COLUMNS = ["勾选", "序号", "证券名称", "持仓方向", "成本价", "持仓均价", "可用数量", "持仓数量", "持仓市值", "持仓名本", "交易保证金", "浮动盈亏", "持仓盈亏", "单票维持担保比例", "操作"];
       const POS_WIDTH = {
         "勾选": 40, "序号": 44, "证券名称": 160, "持仓方向": 80, "成本价": 96, "持仓均价": 96,
@@ -6783,14 +6743,8 @@
 
       const statusOf = (snap) => (activeMetric === SUMMARY ? worstOf(snap) : snap.status[activeMetric]);
 
-      /* 待追保金额：未触发风控线时为 0，触发时按当前触发阈值反算需追加的保证金 */
-      function callAmount(metric, acc, d, rule) {
-        if (!rule) return 0;
-        const t = rule.threshold / 100;
-        if (metric === "维持担保比例") return t * d.posValue - acc.nav;
-        if (metric === "剩余流动性占比") return t === 1 ? 0 : ((1 - t) * acc.nav - acc.marginUsed) / (t - 1);
-        return t === 0 ? 0 : (Math.abs(Math.min(0, acc.totalPnl)) - t * acc.margin) / t;
-      }
+      /* 待追保金额：沿用原超额保证金公式 = 净资产 - 交易保证金 */
+      const callAmount = (acc, d) => d.excess;
 
       const autoCloseOf = (acc) => metricsInScope().some((m) => rulesOf(acc, m).some((r) => r.autoClose));
 
@@ -6807,10 +6761,9 @@
           case "净资产": return `<td class="num">${fmtAmount(acc.nav)}</td>`;
           case "保证金": return `<td class="num">${fmtAmount(acc.margin)}</td>`;
           case "交易保证金": return `<td class="num">${fmtAmount(d.tradeMargin)}</td>`;
-          case "超额保证金": return `<td class="num" style="color:${d.excess >= 0 ? "#f1f3f8" : "#ff8f8f"}">${fmtAmount(d.excess)}</td>`;
           case "待追保金额": {
-            const v = callAmount(evalResult.metric || activeMetric, acc, d, evalResult.rule);
-            return `<td class="num" style="color:${v > 0 ? "#ff9a9a" : "#f1f3f8"}">${fmtAmount(Math.max(0, v))}</td>`;
+            const v = callAmount(acc, d);
+            return `<td class="num" style="color:${v >= 0 ? "#f1f3f8" : "#ff8f8f"}">${fmtAmount(v)}</td>`;
           }
           case "持仓市值": return `<td class="num">${fmtAmount(d.posValue)}</td>`;
           case "持仓名本": return `<td class="num">${fmtAmount(d.posNotional)}</td>`;
@@ -6846,8 +6799,8 @@
         const sb = STATUS_ORDER[wb.status];
         if (sa !== sb) return sb - sa;
         if (activeMetric === SUMMARY) {
-          /* 同风控状态时按待追保金额从高到低 */
-          return callAmount(wb.metric, b.acc, b.d, wb.rule) - callAmount(wa.metric, a.acc, a.d, wa.rule);
+          /* 同风控状态时按待追保金额从低到高（缺口更大的排前） */
+          return callAmount(a.acc, a.d) - callAmount(b.acc, b.d);
         }
         const dir = DIRECTION[activeMetric];
         const va = a.d.metrics[activeMetric];
@@ -6945,7 +6898,7 @@
         renderDrill(items.find((x) => x.acc.id === activeAccountId) || null);
       }
 
-      /* ---------- 持仓下钻 ---------- */
+      /* ---------- 客户持仓 ---------- */
       function posColumns() {
         return POS_COLUMNS.filter((c) => c !== "单票维持担保比例" || activeMetric === "维持担保比例" || activeMetric === SUMMARY);
       }
@@ -6964,13 +6917,13 @@
 
         if (!snap) {
           posBody.innerHTML = `<tr class="empty-row"><td colspan="${cols.length}">请选择账户</td></tr>`;
-          el("rkPosTitle").textContent = "持仓下钻";
-          el("rkPosSummary").textContent = "点击上方任一账户行下钻持仓";
+          el("rkPosTitle").textContent = "客户持仓";
+          el("rkPosSummary").textContent = "点击上方任一账户行查看客户持仓";
           batchBtn.disabled = true;
           return;
         }
         const { acc, d } = snap;
-        el("rkPosTitle").textContent = `持仓下钻 — ${acc.tradeAccount}（${acc.customer}）`;
+        el("rkPosTitle").textContent = `客户持仓 — ${acc.tradeAccount}（${acc.customer}）`;
 
         if (!d.posList.length) {
           posBody.innerHTML = `<tr class="empty-row"><td colspan="${cols.length}">该账户暂无持仓（开户后无市值，风控线不触发）</td></tr>`;
@@ -7628,38 +7581,6 @@
         renderMessages();
         msgPanel.classList.remove("open");
         focusAccount(msg.accountId, msg.metric);
-      });
-
-      /* ---------- 强平篮子默认字段配置 + LIC 权限 ---------- */
-      const cfgOrderType = el("rkCfgOrderType");
-      const cfgSide = el("rkCfgSide");
-      const cfgPriceType = el("rkCfgPriceType");
-      const cfgAlgo = el("rkCfgAlgo");
-      const options = (list) => list.map((v) => `<option value="${v}">${v}</option>`).join("");
-      cfgOrderType.innerHTML = options(B.ORDER_TYPES);
-      cfgSide.innerHTML = options(["自动", ...B.SIDES]);
-      cfgPriceType.innerHTML = options(B.PRICE_TYPES);
-      cfgAlgo.innerHTML = options(B.ALGOS);
-      el("rkCfgLic").innerHTML = METRICS.map((m) => `<label><input type="checkbox" data-lic="${m}" />${m} 读写</label>`).join("");
-
-      el("rkLiqConfig").addEventListener("click", () => {
-        cfgOrderType.value = liqConfig.orderType;
-        cfgSide.value = liqConfig.side;
-        cfgPriceType.value = liqConfig.priceType;
-        cfgAlgo.value = liqConfig.algo;
-        document.querySelectorAll("#rkCfgLic input").forEach((cb) => { cb.checked = LIC[cb.dataset.lic].write; });
-        openRkModal("rkLiqConfigModal");
-      });
-
-      el("rkCfgConfirm").addEventListener("click", () => {
-        liqConfig.orderType = cfgOrderType.value;
-        liqConfig.side = cfgSide.value;
-        liqConfig.priceType = cfgPriceType.value;
-        liqConfig.algo = cfgAlgo.value;
-        document.querySelectorAll("#rkCfgLic input").forEach((cb) => { LIC[cb.dataset.lic].write = cb.checked; });
-        closeRkModal("rkLiqConfigModal");
-        renderList();
-        B.toast("强平篮子默认字段与权限配置已保存", "ok");
       });
 
       function refreshTriggers() {

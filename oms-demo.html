@@ -4161,10 +4161,6 @@
             <select class="rk-multi" id="rcRuleFunds" multiple></select>
           </div>
           <div class="bk-field rk-field-tall">
-            <span class="bk-label">交易对手名称</span>
-            <select class="rk-multi" id="rcRuleCounterparties" multiple></select>
-          </div>
-          <div class="bk-field rk-field-tall">
             <span class="bk-label">交易账户</span>
             <select class="rk-multi" id="rcRuleAccounts" multiple></select>
           </div>
@@ -7805,8 +7801,8 @@
       /* ---------- 新增 / 编辑弹框 ---------- */
       const ruleState = { mode: "create", editingId: null };
       const ruleFunds = el("rcRuleFunds");
-      const ruleCps = el("rcRuleCounterparties");
       const ruleAccounts = el("rcRuleAccounts");
+      const ruleSelectors = [ruleFunds, ruleAccounts];
       const ruleName = el("rcRuleName");
       const ruleType = el("rcRuleType");
       const ruleDirection = el("rcRuleDirection");
@@ -7821,7 +7817,6 @@
       ruleName.innerHTML = options(RULE_NAMES);
       ruleStatus.innerHTML = options(STATUSES.filter((s) => s !== "正常"));
       ruleFunds.innerHTML = accounts.map((a) => `<option value="${a.id}">${a.fundName}</option>`).join("");
-      ruleCps.innerHTML = accounts.map((a) => `<option value="${a.id}">${a.counterparty}</option>`).join("");
       ruleAccounts.innerHTML = accounts.map((a) => `<option value="${a.id}">${a.tradeAccount} ${a.customer}</option>`).join("");
       el("rcRuleSwatches").innerHTML = SWATCHES.map((c) => `<button class="rk-color-swatch" data-color="${c}" style="background:${c}" type="button" aria-label="${c}"></button>`).join("");
       el("rcImportType").innerHTML = options(METRICS);
@@ -7851,14 +7846,14 @@
 
       function selectedAccountIds() {
         const ids = new Set();
-        [ruleFunds, ruleCps, ruleAccounts].forEach((sel) => {
+        ruleSelectors.forEach((sel) => {
           [...sel.selectedOptions].forEach((o) => ids.add(Number(o.value)));
         });
         return [...ids];
       }
 
       function setMultiSelection(ids) {
-        [ruleFunds, ruleCps, ruleAccounts].forEach((sel) => {
+        ruleSelectors.forEach((sel) => {
           [...sel.options].forEach((o) => { o.selected = ids.includes(Number(o.value)); });
         });
       }
@@ -7883,7 +7878,7 @@
         ruleDirection.value = DIRECTION[ruleType.value];
       }
 
-      [ruleFunds, ruleCps, ruleAccounts].forEach((sel) => sel.addEventListener("change", syncRuleType));
+      ruleSelectors.forEach((sel) => sel.addEventListener("change", syncRuleType));
 
       function openRuleModal(mode, rule) {
         ruleState.mode = mode;
@@ -7891,7 +7886,7 @@
         el("rcRuleTitle").textContent = mode === "edit"
           ? `编辑风控线 — ${rule.tradeAccount}（${rule.ruleName} ${rule.threshold}%）`
           : "新增风控线";
-        [ruleFunds, ruleCps, ruleAccounts].forEach((sel) => { sel.disabled = mode === "edit"; });
+        ruleSelectors.forEach((sel) => { sel.disabled = mode === "edit"; });
 
         if (mode === "edit") {
           const acc = accOf(rule);

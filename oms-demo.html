@@ -1086,12 +1086,32 @@
       color: #cbd1dc;
     }
 
-    #view-position .hedge-toggle { display: none; align-items: center; gap: 6px; cursor: pointer; }
-    #view-position .hedge-toggle.show { display: flex; }
-    #view-position .hedge-toggle input { margin: 0; }
-    #view-position .filter-summary { color: #9ba1ae; }
-    #view-position .pos-tip { display: none; color: #8f96a3; }
-    #view-position .pos-tip.show { display: inline; }
+    #view-position .pos-radio {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #view-position .pos-radio.show { display: flex; }
+
+    #view-position .pos-radio input {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      margin: 0;
+      border: 1.5px solid #7a8190;
+      border-radius: 50%;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    #view-position .pos-radio input:checked {
+      border-color: #2f80ff;
+      background: radial-gradient(circle, #2f80ff 0 4px, transparent 5px);
+    }
 
     #view-position .table-wrap {
       height: calc(100% - 72px);
@@ -3361,19 +3381,24 @@
               <button class="pos-tab active" data-asset="证券" type="button">证券</button>
               <button class="pos-tab" data-asset="期货" type="button">期货</button>
               <button class="pos-tab" data-asset="债券" type="button">债券</button>
-              <button class="pos-tab" data-asset="组合持仓" type="button">组合持仓</button>
             </div>
             <div class="tab-actions">
-              <label class="hedge-toggle show" id="hedgeToggle" title="切换为对冲方持仓视图">
-                <input id="hedgeOnly" type="checkbox" />
+              <label class="pos-radio show" id="customerToggle" title="对客方持仓汇总">
+                <input id="customerOnly" name="posViewMode" type="radio" value="customer" checked />
+                <span>对客方</span>
+              </label>
+              <label class="pos-radio show" id="hedgeToggle" title="切换为对冲方持仓视图">
+                <input id="hedgeOnly" name="posViewMode" type="radio" value="hedge" />
                 <span>对冲方</span>
               </label>
-              <label class="hedge-toggle show" id="detailToggle" title="切换为持仓明细（逐笔开仓）视图">
-                <input id="detailOnly" type="checkbox" />
+              <label class="pos-radio show" id="detailToggle" title="切换为持仓明细（逐笔开仓）视图">
+                <input id="detailOnly" name="posViewMode" type="radio" value="detail" />
                 <span>明细</span>
               </label>
-              <span class="pos-tip show" id="posTip">右键行可查看【持仓信息】</span>
-              <span class="filter-summary" id="filterSummary">共 0 条</span>
+              <label class="pos-radio" id="comboToggle" title="组合持仓">
+                <input id="comboOnly" name="posViewMode" type="radio" value="combo" />
+                <span>组合持仓</span>
+              </label>
             </div>
           </div>
           <div class="table-wrap">
@@ -3698,6 +3723,7 @@
                     <th style="width:104px">对冲渠道</th>
                     <th style="width:88px">订单类型</th>
                     <th style="width:140px">标的代码</th>
+                    <th style="width:62px">币种</th>
                     <th style="width:80px">订单方向</th>
                     <th style="width:90px">开平标识</th>
                     <th style="width:96px">价格类型</th>
@@ -3770,7 +3796,7 @@
               <span class="bk-count">点击上方任一篮子行或「详情」查看执行明细</span>
             </div>
             <div class="bk-table-wrap">
-              <table class="bk-table" id="bkMonDetailTable" style="min-width:1440px">
+              <table class="bk-table" id="bkMonDetailTable" style="min-width:1502px">
                 <thead>
                   <tr>
                     <th style="width:52px">序号</th>
@@ -3778,6 +3804,7 @@
                     <th style="width:150px">资金账号名称</th>
                     <th style="width:104px">交易账户</th>
                     <th style="width:140px">标的代码</th>
+                    <th style="width:62px">币种</th>
                     <th style="width:80px">订单方向</th>
                     <th style="width:90px">开平标识</th>
                     <th style="width:96px">委托价格</th>
@@ -3949,7 +3976,7 @@
         </div>
         <div class="bk-hint" id="bkEditHint"></div>
         <div class="bk-detail-wrap">
-          <table class="bk-table" id="bkEditTable" style="min-width:1404px">
+          <table class="bk-table" id="bkEditTable" style="min-width:1466px">
             <thead>
               <tr>
                 <th class="frz c0" style="width:44px">序号</th>
@@ -3960,6 +3987,7 @@
                 <th style="width:92px">对冲渠道</th>
                 <th style="width:82px">订单类型</th>
                 <th style="width:132px">标的代码</th>
+                <th style="width:62px">币种</th>
                 <th style="width:76px">订单方向</th>
                 <th style="width:92px">开平标识</th>
                 <th style="width:88px">价格类型</th>
@@ -4097,7 +4125,7 @@
         </div>
         <div class="bk-hint" id="bkOrderHint"></div>
         <div class="bk-detail-wrap">
-          <table class="bk-table" id="bkOrderTable" style="min-width:1444px">
+          <table class="bk-table" id="bkOrderTable" style="min-width:1506px">
             <thead>
               <tr>
                 <th class="frz c0" style="width:40px"><input type="checkbox" id="bkOrderCheckAll" checked /></th>
@@ -4109,6 +4137,7 @@
                 <th style="width:92px">对冲渠道</th>
                 <th style="width:82px">订单类型</th>
                 <th style="width:132px">标的代码</th>
+                <th style="width:62px">币种</th>
                 <th style="width:92px">订单方向</th>
                 <th style="width:88px">价格类型</th>
                 <th style="width:88px">委托价格</th>
@@ -4286,7 +4315,7 @@
               </div>
             </div>
             <div class="bk-table-wrap">
-              <table class="bk-table" id="rkMbTable" style="min-width:1620px">
+              <table class="bk-table" id="rkMbTable" style="min-width:1682px">
                 <thead>
                   <tr>
                     <th class="frz c0" style="width:44px">序号</th>
@@ -4296,6 +4325,7 @@
                     <th style="width:140px">框架名称</th>
                     <th style="width:96px">订单类型</th>
                     <th style="width:160px">标的代码</th>
+                    <th style="width:62px">币种</th>
                     <th style="width:92px">订单方向</th>
                     <th style="width:104px">价格类型</th>
                     <th style="width:96px">委托价格</th>
@@ -4980,12 +5010,11 @@
       const tbody = table.querySelector("tbody");
       const filters = [...root.querySelectorAll("[data-filter]")];
       const tabs = [...root.querySelectorAll(".pos-tab")];
-      const hedgeOnly = root.querySelector("#hedgeOnly");
+      const customerOnly = root.querySelector("#customerOnly");
+      const customerToggle = root.querySelector("#customerToggle");
       const hedgeToggle = root.querySelector("#hedgeToggle");
-      const detailOnly = root.querySelector("#detailOnly");
       const detailToggle = root.querySelector("#detailToggle");
-      const posTip = root.querySelector("#posTip");
-      const filterSummary = root.querySelector("#filterSummary");
+      const comboToggle = root.querySelector("#comboToggle");
       let activeAsset = "证券";
 
       const numberFields = new Set(["可用数量","持仓数量","成本价","持仓均价","最新价","持仓盈亏","市值","持仓市值","期初数量","交易冻结数量","日内开仓成交数量","日内平仓成交数量","日间开仓数量","日间平仓数量","持仓净价","持仓全价","券面总额（万）","成分数量","开仓均价","平仓盈亏","单位待实现利率收益"]);
@@ -5103,20 +5132,33 @@
         return value ?? "--";
       }
 
-      /* 证券 / 期货：默认对客仓，可切换为对冲方或持仓明细视图（两者互斥） */
+      function viewMode() {
+        const checked = root.querySelector("input[name='posViewMode']:checked");
+        return checked ? checked.value : "customer";
+      }
+
+      function setViewMode(mode) {
+        const target = root.querySelector(`input[name='posViewMode'][value="${mode}"]`);
+        if (target) target.checked = true;
+        else customerOnly.checked = true;
+      }
+
+      /* 证券 / 期货展示对客方、对冲方、明细；组合持仓仅出现在期货 sheet */
       function supportsViewToggle() {
         return activeAsset === "证券" || activeAsset === "期货";
       }
 
-      /* 持仓汇总视图（未勾选任何复选框）才允许右键查看持仓信息 */
+      /* 仅对客方汇总视图允许右键查看持仓信息 */
       function isCustomerView() {
-        return !hedgeOnly.checked && !detailOnly.checked;
+        return viewMode() === "customer";
       }
 
       function fieldKey() {
+        const mode = viewMode();
+        if (mode === "combo") return "组合持仓";
         if (!supportsViewToggle()) return activeAsset;
-        if (detailOnly.checked) return `${activeAsset}-持仓明细`;
-        if (hedgeOnly.checked) return `${activeAsset}-对冲方`;
+        if (mode === "detail") return `${activeAsset}-持仓明细`;
+        if (mode === "hedge") return `${activeAsset}-对冲方`;
         return `${activeAsset}-对客仓`;
       }
 
@@ -5140,13 +5182,13 @@
 
       function syncToggles() {
         const on = supportsViewToggle();
+        customerToggle.classList.toggle("show", on);
         hedgeToggle.classList.toggle("show", on);
         detailToggle.classList.toggle("show", on);
-        if (!on) {
-          hedgeOnly.checked = false;
-          detailOnly.checked = false;
+        comboToggle.classList.toggle("show", activeAsset === "期货");
+        if (!on || (viewMode() === "combo" && activeAsset !== "期货")) {
+          setViewMode("customer");
         }
-        posTip.classList.toggle("show", isCustomerView());
       }
 
       function renderHeader(fields) {
@@ -5174,26 +5216,20 @@
 
       function renderTable() {
         const vals = currentFilters();
-        const onlyHedge = hedgeOnly.checked && supportsViewToggle();
+        const mode = viewMode();
         const fields = fieldSets[fieldKey()];
-        const items = baseData.filter((d) => d.asset === activeAsset && matchesFilters(d, vals) && (!onlyHedge || d.hedge));
+        const assetKey = mode === "combo" ? "组合持仓" : activeAsset;
+        const items = baseData.filter((d) => d.asset === assetKey && matchesFilters(d, vals) && (mode !== "hedge" || d.hedge));
         visibleItems = items;
         renderHeader(fields);
         renderBody(items, fields);
         syncToggles();
-        const viewName = detailOnly.checked ? "持仓明细" : onlyHedge ? "对冲方" : "";
-        filterSummary.textContent = viewName ? `${viewName} ${items.length} 条` : `共 ${items.length} 条`;
       }
 
       root.querySelector("#searchBtn").addEventListener("click", renderTable);
       filters.forEach((s) => s.addEventListener("change", renderTable));
-      hedgeOnly.addEventListener("change", () => {
-        if (hedgeOnly.checked) detailOnly.checked = false;
-        renderTable();
-      });
-      detailOnly.addEventListener("change", () => {
-        if (detailOnly.checked) hedgeOnly.checked = false;
-        renderTable();
+      root.querySelectorAll("input[name='posViewMode']").forEach((radio) => {
+        radio.addEventListener("change", renderTable);
       });
       tabs.forEach((tab) => {
         tab.addEventListener("click", () => {
@@ -5310,8 +5346,7 @@
           /* 固定跳转到第一个 sheet 页（证券），仅按交易账户筛选 */
           activeAsset = tabs[0].dataset.asset;
           tabs.forEach((t, i) => t.classList.toggle("active", i === 0));
-          hedgeOnly.checked = false;
-          detailOnly.checked = false;
+          setViewMode("customer");
           filters.forEach((sel) => {
             const wanted = sel.dataset.filter === "account" ? account : "";
             sel.value = [...sel.options].some((o) => o.value === wanted) ? wanted : "";
@@ -5347,15 +5382,24 @@
       const OFFSETS = ["--", "自动（优先平今）", "开仓", "平仓", "平今"];
       const ACTIVE_STATUS = new Set(["待报", "已报", "部成", "待撤"]);
 
+      /* 汇率：标价为 1 单位该币种兑多少 CNY，换算时用 from/to 相除得到当时汇率 */
+      const FX_TO_CNY = { CNY: 1, HKD: 0.9126, USD: 7.1826 };
+      const ACCOUNT_CCY = {
+        T10000231: "CNY", T10000155: "CNY", T10000151: "CNY",
+        T10000273: "CNY", T10000188: "CNY", T10000003: "CNY"
+      };
+
       const INSTRUMENTS = {
-        "000001.SZ": { name: "平安银行", biz: "证券", last: 11.38, tick: 0.01, dp: 2, mult: 1, minUnit: 100, upper: 12.52, lower: 10.24 },
-        "600519.SH": { name: "贵州茅台", biz: "证券", last: 1428.50, tick: 0.01, dp: 2, mult: 1, minUnit: 100, upper: 1571.35, lower: 1285.65 },
-        "300252.SZ": { name: "金信诺", biz: "证券", last: 16.02, tick: 0.01, dp: 2, mult: 1, minUnit: 100, upper: 19.22, lower: 12.82 },
-        "688525.SH": { name: "佰维存储", biz: "证券", last: 290.45, tick: 0.01, dp: 2, mult: 1, minUnit: 200, upper: 348.54, lower: 232.36 },
-        "001215.SZ": { name: "千味央厨", biz: "证券", last: 49.01, tick: 0.01, dp: 2, mult: 1, minUnit: 100, upper: 58.81, lower: 39.21 },
-        "000505.SZ": { name: "京粮控股", biz: "证券", last: 6.74, tick: 0.01, dp: 2, mult: 1, minUnit: 100, upper: 7.41, lower: 6.07 },
-        "IF2606.CFFEX": { name: "沪深300期货", biz: "期货", last: 3986.4, tick: 0.2, dp: 1, mult: 300, minUnit: 1, upper: null, lower: null },
-        "IH2606.CFFEX": { name: "上证50期货", biz: "期货", last: 2712.6, tick: 0.2, dp: 1, mult: 300, minUnit: 1, upper: 2848.2, lower: 2577.0 }
+        "000001.SZ": { name: "平安银行", biz: "证券", last: 11.38, tick: 0.01, dp: 2, mult: 1, minUnit: 100, upper: 12.52, lower: 10.24, ccy: "CNY" },
+        "600519.SH": { name: "贵州茅台", biz: "证券", last: 1428.50, tick: 0.01, dp: 2, mult: 1, minUnit: 100, upper: 1571.35, lower: 1285.65, ccy: "CNY" },
+        "300252.SZ": { name: "金信诺", biz: "证券", last: 16.02, tick: 0.01, dp: 2, mult: 1, minUnit: 100, upper: 19.22, lower: 12.82, ccy: "CNY" },
+        "688525.SH": { name: "佰维存储", biz: "证券", last: 290.45, tick: 0.01, dp: 2, mult: 1, minUnit: 200, upper: 348.54, lower: 232.36, ccy: "CNY" },
+        "001215.SZ": { name: "千味央厨", biz: "证券", last: 49.01, tick: 0.01, dp: 2, mult: 1, minUnit: 100, upper: 58.81, lower: 39.21, ccy: "CNY" },
+        "000505.SZ": { name: "京粮控股", biz: "证券", last: 6.74, tick: 0.01, dp: 2, mult: 1, minUnit: 100, upper: 7.41, lower: 6.07, ccy: "CNY" },
+        "00700.HK": { name: "腾讯控股", biz: "证券", last: 382.40, tick: 0.20, dp: 2, mult: 1, minUnit: 100, upper: null, lower: null, ccy: "HKD" },
+        "AAPL.US": { name: "苹果", biz: "证券", last: 228.60, tick: 0.01, dp: 2, mult: 1, minUnit: 1, upper: null, lower: null, ccy: "USD" },
+        "IF2606.CFFEX": { name: "沪深300期货", biz: "期货", last: 3986.4, tick: 0.2, dp: 1, mult: 300, minUnit: 1, upper: null, lower: null, ccy: "CNY" },
+        "IH2606.CFFEX": { name: "上证50期货", biz: "期货", last: 2712.6, tick: 0.2, dp: 1, mult: 300, minUnit: 1, upper: 2848.2, lower: 2577.0, ccy: "CNY" }
       };
 
       const POSITIONS = [
@@ -5364,6 +5408,7 @@
         { fund: "1000204-明星电销", account: "T10000231", code: "300252.SZ", dir: "多头", qty: 18000 },
         { fund: "JGH0000180-UAT160TEST", account: "T10000155", code: "000001.SZ", dir: "多头", qty: 2000 },
         { fund: "JGH0000180-UAT160TEST", account: "T10000155", code: "000505.SZ", dir: "多头", qty: 7500 },
+        { fund: "JGH0000180-UAT160TEST", account: "T10000155", code: "00700.HK", dir: "多头", qty: 200 },
         { fund: "JGH0000177-孙熠宇", account: "T10000151", code: "600519.SH", dir: "多头", qty: 300 },
         { fund: "JGH0000177-孙熠宇", account: "T10000151", code: "IH2606.CFFEX", dir: "多头", qty: 12 },
         { fund: "809986-test_party_8099", account: "T10000273", code: "IF2606.CFFEX", dir: "空头", qty: 8 }
@@ -5391,6 +5436,46 @@
       function fmtPrice(v, code) {
         const dp = inst(code)?.dp ?? 2;
         return num(v).toFixed(dp);
+      }
+
+      function instrumentCcy(code) {
+        return inst(code)?.ccy || "CNY";
+      }
+
+      function accountCcy(account) {
+        return ACCOUNT_CCY[account] || "CNY";
+      }
+
+      /* 当时汇率：1 单位 from 兑 to */
+      function fxRate(from, to) {
+        const src = FX_TO_CNY[from] || 1;
+        const dst = FX_TO_CNY[to] || 1;
+        return src / dst;
+      }
+
+      function convertAmount(amount, from, to) {
+        if (!from || !to || from === to) return num(amount);
+        return num(amount) * fxRate(from, to);
+      }
+
+      /* 委托价格为标的交易币种，预估金额按账户币种用当时汇率折算 */
+      function estAmountInAccountCcy(row, qty) {
+        const native = num(row.price) * (inst(row.code)?.mult || 1) * num(qty);
+        const converted = convertAmount(native, instrumentCcy(row.code), accountCcy(row.account));
+        row.fxRate = fxRate(instrumentCcy(row.code), accountCcy(row.account));
+        row.accountCcy = accountCcy(row.account);
+        return converted;
+      }
+
+      function formatEstByCcy(rows, qtyOf) {
+        const map = {};
+        rows.forEach((r) => {
+          const qty = qtyOf ? qtyOf(r) : (r.calcQty ?? r.qty);
+          const ccy = accountCcy(r.account);
+          map[ccy] = (map[ccy] || 0) + estAmountInAccountCcy(r, qty);
+        });
+        const parts = Object.keys(map).map((ccy) => `${fmtAmount(map[ccy])} ${ccy}`);
+        return parts.join(" / ") || "--";
       }
 
       function toast(message, type = "info") {
@@ -5470,7 +5555,8 @@
           rows: [
             makeRow({ fund: FUNDS[1], account: ACCOUNTS[1], code: "688525.SH", qty: 2000, side: "卖出" }),
             makeRow({ fund: FUNDS[1], account: ACCOUNTS[1], code: "001215.SZ", qty: 17300, side: "卖出" }),
-            makeRow({ fund: FUNDS[1], account: ACCOUNTS[1], code: "300252.SZ", qty: 18000, side: "卖出", algo: "TWAP" })
+            makeRow({ fund: FUNDS[1], account: ACCOUNTS[1], code: "300252.SZ", qty: 18000, side: "卖出", algo: "TWAP" }),
+            makeRow({ fund: FUNDS[0], account: ACCOUNTS[0], code: "00700.HK", qty: 200, side: "卖出" })
           ]
         },
         {
@@ -5530,7 +5616,7 @@
         }
       ];
 
-      runs.forEach((run) => { run.estAmount = run.orders.reduce((s, o) => s + o.price * (inst(o.code)?.mult || 1) * o.qty, 0); });
+      runs.forEach((run) => { run.estAmount = run.orders.reduce((s, o) => s + estAmountInAccountCcy(o, o.qty), 0); });
 
       /* ---------- 派生计算 ---------- */
       function runStatus(run) {
@@ -5628,7 +5714,7 @@
       function renderBasketDetail(basket) {
         if (!basket) {
           listDetailTitle.textContent = "篮子明细（下钻）";
-          listDetailBody.innerHTML = `<tr class="empty-row"><td colspan="15">请选择篮子</td></tr>`;
+          listDetailBody.innerHTML = `<tr class="empty-row"><td colspan="16">请选择篮子</td></tr>`;
           return;
         }
         listDetailTitle.textContent = `篮子明细（下钻）— ${basket.name}`;
@@ -5637,6 +5723,7 @@
             <td>${i + 1}</td><td>${r.biz}</td><td style="text-align:left">${r.fund}</td><td>${r.account}</td>
             <td>${r.pool}</td><td>${r.hedge}</td><td>${r.orderType}</td>
             <td style="text-align:left">${r.code} ${inst(r.code)?.name || ""}</td>
+            <td>${instrumentCcy(r.code)}</td>
             <td><span class="bk-tag ${r.side === "买入" ? "side-buy" : "side-sell"}">${r.side}</span></td>
             <td>${r.offset}</td><td>${r.priceType}</td>
             <td class="num">${fmtPrice(r.price, r.code)}</td>
@@ -5687,7 +5774,7 @@
           editWeightSum.textContent = "";
         }
         if (!editState.rows.length) {
-          editBody.innerHTML = `<tr class="empty-row"><td colspan="16">暂无明细，请「新增一行」或「导入持仓 / 导入篮子」</td></tr>`;
+          editBody.innerHTML = `<tr class="empty-row"><td colspan="17">暂无明细，请「新增一行」或「导入持仓 / 导入篮子」</td></tr>`;
           return;
         }
         editBody.innerHTML = editState.rows.map((r, i) => `
@@ -5700,6 +5787,7 @@
             <td>${selectCell("hedge", i, HEDGES, r.hedge)}</td>
             <td>${selectCell("orderType", i, ORDER_TYPES, r.orderType)}</td>
             <td>${symbolCell(i, r.code)}</td>
+            <td>${instrumentCcy(r.code)}</td>
             <td>${selectCell("side", i, SIDES, r.side)}</td>
             <td>${selectCell("offset", i, OFFSETS, r.offset)}</td>
             <td>${selectCell("priceType", i, PRICE_TYPES, r.priceType)}</td>
@@ -5996,8 +6084,8 @@
       });
 
       document.querySelector("#bkEditExport").addEventListener("click", () => {
-        const head = ["序号", "业务类型", "资金账号名称", "交易账户", "券池编号", "对冲渠道", "订单类型", "标的代码", "订单方向", "开平标识", "价格类型", "委托价格", "委托数量", "权重", "算法类型"];
-        const lines = [head.join(",")].concat(editState.rows.map((r, i) => [i + 1, r.biz, r.fund, r.account, r.pool, r.hedge, r.orderType, r.code, r.side, r.offset, r.priceType, r.price, r.qty, r.weight, r.algo].join(",")));
+        const head = ["序号", "业务类型", "资金账号名称", "交易账户", "券池编号", "对冲渠道", "订单类型", "标的代码", "币种", "订单方向", "开平标识", "价格类型", "委托价格", "委托数量", "权重", "算法类型"];
+        const lines = [head.join(",")].concat(editState.rows.map((r, i) => [i + 1, r.biz, r.fund, r.account, r.pool, r.hedge, r.orderType, r.code, instrumentCcy(r.code), r.side, r.offset, r.priceType, r.price, r.qty, r.weight, r.algo].join(",")));
         const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
@@ -6041,13 +6129,14 @@
           r.price = res.missing ? 0 : res.price;
           if (isWeight) {
             const amount = num(orderState.totalAmount) * num(r.weight) / 100;
-            const raw = r.price > 0 ? amount / (r.price * mult) : 0;
+            const unitAcc = r.price * mult * fxRate(instrumentCcy(r.code), accountCcy(r.account));
+            const raw = unitAcc > 0 ? amount / unitAcc : 0;
             r.calcQty = raw < unit ? 0 : Math.floor(raw / unit) * unit;
           } else {
             r.calcQty = num(r.baseQty) * num(orderState.basketQty);
           }
           r.invalid = !r.calcQty || !!r.missing;
-          r.estAmount = r.price * mult * r.calcQty;
+          r.estAmount = estAmountInAccountCcy(r, r.calcQty);
         });
       }
 
@@ -6063,8 +6152,7 @@
         document.querySelector("#bkOrderAmountField").style.display = isWeight ? "" : "none";
         document.querySelector("#bkOrderPriceTypeField").style.display = overviewMarket ? "none" : "";
         const checkedRows = orderCheckedRows();
-        const est = checkedRows.reduce((s, r) => s + num(r.estAmount), 0);
-        document.querySelector("#bkOrderEstAmount").textContent = `${fmtAmount(est)} CNY`;
+        document.querySelector("#bkOrderEstAmount").textContent = formatEstByCcy(checkedRows, (r) => r.calcQty);
         if (isWeight) {
           const sum = weightSum(orderState.rows);
           const ok = Math.abs(sum - 100) < 0.005;
@@ -6084,7 +6172,7 @@
         document.querySelector("#bkOrderSummary").textContent = `已勾选 ${checkedRows.length} / ${orderState.rows.length} 项`;
         orderCheckAll.checked = orderState.rows.length > 0 && checkedRows.length === orderState.rows.length;
         if (!orderState.rows.length) {
-          orderBody.innerHTML = `<tr class="empty-row"><td colspan="16">篮子明细为空</td></tr>`;
+          orderBody.innerHTML = `<tr class="empty-row"><td colspan="17">篮子明细为空</td></tr>`;
           return;
         }
         orderBody.innerHTML = orderState.rows.map((r, i) => {
@@ -6100,6 +6188,7 @@
             <td>${r.hedge}</td>
             <td>${selectCell("orderType", i, ORDER_TYPES, r.orderType)}</td>
             <td style="text-align:left">${r.code} ${inst(r.code)?.name || ""}</td>
+            <td>${instrumentCcy(r.code)}</td>
             <td>${selectCell("side", i, SIDES, r.side)}</td>
             <td>${selectCell("priceType", i, PRICE_TYPES, market ? "" : r.priceType, market)}</td>
             <td>${numCell("price", i, market ? "" : (r.missing ? "--" : fmtPrice(r.price, r.code)), market || r.priceType !== "指定价")}</td>
@@ -6214,7 +6303,7 @@
         const invalidCount = checkedRows.length - valid.length;
         const text = `已勾选 <strong>${checkedRows.length}/${orderState.rows.length}</strong> 项，确定对已勾选项下单吗？`
           + (invalidCount ? `<br /><span style="color:#ff9a9a">其中 ${invalidCount} 笔为无效委托（委托数量 0），将不予发送。</span>` : "")
-          + `<br /><span style="color:#9ba1ae">预估金额 ${fmtAmount(valid.reduce((s, r) => s + num(r.estAmount), 0))} CNY，委托属性为「强平委托」，customer 端隐藏撤单按钮，仅 trader 端可撤单。</span>`;
+          + `<br /><span style="color:#9ba1ae">预估金额 ${formatEstByCcy(valid, (r) => r.calcQty)}，委托属性为「强平委托」，customer 端隐藏撤单按钮，仅 trader 端可撤单。</span>`;
         askConfirm("篮子下单二次确认", text, sendBasketOrder);
       });
 
@@ -6233,7 +6322,7 @@
           stoppedAt: "",
           orders: valid.map((r) => Object.assign({}, r, { qty: r.calcQty, filledQty: 0, filledPrice: 0, status: "已报", mark: "强平委托" }))
         };
-        run.estAmount = run.orders.reduce((s, o) => s + o.price * (inst(o.code)?.mult || 1) * o.qty, 0);
+        run.estAmount = run.orders.reduce((s, o) => s + estAmountInAccountCcy(o, o.qty), 0);
         runs.unshift(run);
         activeRunId = run.id;
         closeModal("bkOrderModal");
@@ -6306,7 +6395,7 @@
       function renderRunDetail(run) {
         if (!run) {
           monDetailTitle.textContent = "篮子执行明细";
-          monDetailBody.innerHTML = `<tr class="empty-row"><td colspan="14">请选择篮子</td></tr>`;
+          monDetailBody.innerHTML = `<tr class="empty-row"><td colspan="15">请选择篮子</td></tr>`;
           return;
         }
         monDetailTitle.textContent = `篮子执行明细 — ${run.name}`;
@@ -6314,6 +6403,7 @@
           <tr>
             <td>${i + 1}</td><td>${o.biz}</td><td style="text-align:left">${o.fund}</td><td>${o.account}</td>
             <td style="text-align:left">${o.code} ${inst(o.code)?.name || ""}</td>
+            <td>${instrumentCcy(o.code)}</td>
             <td><span class="bk-tag ${o.side === "买入" ? "side-buy" : "side-sell"}">${o.side}</span></td>
             <td>${o.offset}</td>
             <td class="num">${fmtPrice(o.price, o.code)}</td>
@@ -6453,7 +6543,7 @@
           sideMode: BY_BASKET, priceMode: BY_BASKET, algoMode: BY_BASKET,
           createdAt: nowText(), stoppedAt: "", orders
         };
-        run.estAmount = run.orders.reduce((s, o) => s + o.price * (inst(o.code)?.mult || 1) * o.qty, 0);
+        run.estAmount = run.orders.reduce((s, o) => s + estAmountInAccountCcy(o, o.qty), 0);
         runs.unshift(run);
         activeRunId = run.id;
         renderRuns();
@@ -6467,6 +6557,12 @@
         submitRun,
         gotoBasketTrade,
         instrumentOf: inst,
+        instrumentCcy,
+        accountCcy,
+        fxRate,
+        convertAmount,
+        estAmountInAccountCcy,
+        formatEstByCcy,
         resolvePrice,
         applyTickOffset,
         bindRowEditing,
@@ -6513,13 +6609,13 @@
       const SUMMARY = "汇总";
 
       const COLUMNS = {
-        "汇总": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "净资产", "交易保证金", "待追保金额", "持仓市值", "持仓名本", "维持担保比例", "剩余流动性占比", "保证金损耗比例", "风控线", "风控状态", "交易状态", "自动强平"],
+        "汇总": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "账户币种", "净资产", "交易保证金", "待追保金额", "持仓市值", "持仓名本", "维持担保比例", "剩余流动性占比", "保证金损耗比例", "风控线", "风控状态", "交易状态", "自动强平"],
         "维持担保比例": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "净资产", "交易保证金", "待追保金额", "持仓市值", "持仓名本", "维持担保比例", "风控状态", "交易状态", "强平状态", "自动强平"],
         "剩余流动性占比": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "保证金", "交易保证金", "待追保金额", "持仓市值", "持仓名本", "剩余流动性占比", "风控状态", "交易状态", "自动强平"],
         "保证金损耗比例": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "保证金", "持仓市值", "总盈亏", "保证金损耗比例", "待追保金额", "风控状态", "交易状态", "自动强平"]
       };
       const WIDTH = {
-        "勾选": 40, "序号": 44, "资金账号名称": 196, "交易对手名称": 140, "交易账户": 112, "客户名": 130,
+        "勾选": 40, "序号": 44, "资金账号名称": 196, "交易对手名称": 140, "交易账户": 112, "账户币种": 80, "客户名": 130,
         "净资产": 132, "保证金": 132, "交易保证金": 132, "待追保金额": 132,
         "持仓市值": 132, "持仓名本": 132, "总盈亏": 132,
         "维持担保比例": 118, "剩余流动性占比": 124, "保证金损耗比例": 124,
@@ -6527,11 +6623,11 @@
       };
 
       /* 客户持仓列：单票维持担保比例仅在维持担保比例 sheet 出现 */
-      const POS_COLUMNS = ["勾选", "序号", "证券名称", "持仓方向", "成本价", "持仓均价", "可用数量", "持仓数量", "持仓市值", "持仓名本", "交易保证金", "浮动盈亏", "持仓盈亏", "单票维持担保比例", "操作"];
+      const POS_COLUMNS = ["勾选", "序号", "证券名称", "币种", "持仓方向", "成本价", "持仓均价", "可用数量", "持仓数量", "持仓市值", "持仓名本", "交易保证金", "浮动盈亏", "持仓盈亏", "单票维持担保比例"];
       const POS_WIDTH = {
-        "勾选": 40, "序号": 44, "证券名称": 160, "持仓方向": 80, "成本价": 96, "持仓均价": 96,
+        "勾选": 40, "序号": 44, "证券名称": 160, "币种": 62, "持仓方向": 80, "成本价": 96, "持仓均价": 96,
         "可用数量": 100, "持仓数量": 100, "持仓市值": 126, "持仓名本": 126, "交易保证金": 126,
-        "浮动盈亏": 120, "持仓盈亏": 120, "单票维持担保比例": 140, "操作": 76
+        "浮动盈亏": 120, "持仓盈亏": 120, "单票维持担保比例": 140
       };
 
       const CLOSE_STATUS = { NONE: "未强平", DOING: "强平中", DONE: "已强平" };
@@ -6554,7 +6650,7 @@
         {
           id: 1, powerFund: "1000204-明星电销（购买力）", realFundName: "JGH0000181-明星电销", realFund: "JGH0000181", fundAccount: "JGH0000181",
           counterparty: "明星电销对手", tradeAccount: "T10000231", customer: "明星电销",
-          framework: "收益互换标准框架", marginMode: "融资额度", leverage: 1.5,
+          framework: "收益互换标准框架", marginMode: "融资额度", leverage: 1.5, currency: "CNY",
           nav: 2026000, marginUsed: 1300000, margin: 1300000, totalPnl: -280000,
           positions: [
             { code: "688525.SH", dir: "多头", cost: 278.7768, avg: 285.00, qty: 2000, avail: 2000 },
@@ -6565,17 +6661,18 @@
         {
           id: 2, realFundName: "JGH0000180-UAT160TEST", realFund: "JGH0000180", fundAccount: "JGH0000180",
           counterparty: "UAT160TEST对手", tradeAccount: "T10000155", customer: "UAT160TEST",
-          framework: "收益互换标准框架", marginMode: "剩余", leverage: 1,
+          framework: "收益互换标准框架", marginMode: "剩余", leverage: 1, currency: "CNY",
           nav: 101200, marginUsed: 60000, margin: 60000, totalPnl: -11000,
           positions: [
             { code: "000001.SZ", dir: "多头", cost: 26.00, avg: 12.10, qty: 2000 },
-            { code: "000505.SZ", dir: "多头", cost: 6.2216, avg: 6.50, qty: 7500 }
+            { code: "000505.SZ", dir: "多头", cost: 6.2216, avg: 6.50, qty: 7500 },
+            { code: "00700.HK", dir: "多头", cost: 360.00, avg: 370.00, qty: 200 }
           ]
         },
         {
           id: 3, realFundName: "JGH0000177-孙熠宇", realFund: "JGH0000177", fundAccount: "JGH0000177",
           counterparty: "孙熠宇对手", tradeAccount: "T10000151", customer: "孙熠宇",
-          framework: "收益互换标准框架", marginMode: "剩余", leverage: 1,
+          framework: "收益互换标准框架", marginMode: "剩余", leverage: 1, currency: "CNY",
           nav: 3043000, marginUsed: 900000, margin: 900000, totalPnl: 120000,
           positions: [
             { code: "600519.SH", dir: "多头", cost: 1350.00, avg: 1400.00, qty: 300 },
@@ -6585,7 +6682,7 @@
         {
           id: 4, realFundName: "JGH0000052-沈冰2", realFund: "JGH0000052", fundAccount: "JGH0000052",
           counterparty: "沈冰2对手", tradeAccount: "T10000273", customer: "沈冰2",
-          framework: "收益互换标准框架", marginMode: "剩余", leverage: 1,
+          framework: "收益互换标准框架", marginMode: "剩余", leverage: 1, currency: "CNY",
           nav: 189400, marginUsed: 50000, margin: 50000, totalPnl: 8000,
           positions: [
             { code: "000505.SZ", dir: "多头", cost: 7.2742, avg: 7.00, qty: 1500 },
@@ -6595,7 +6692,7 @@
         {
           id: 5, powerFund: "1000042-姚玉倩（购买力）", realFundName: "JGH0000182-姚玉倩", realFund: "JGH0000182", fundAccount: "JGH0000182",
           counterparty: "姚玉倩对手", tradeAccount: "T10000188", customer: "姚玉倩",
-          framework: "收益互换组合框架", marginMode: "融资额度", leverage: 2,
+          framework: "收益互换组合框架", marginMode: "融资额度", leverage: 2, currency: "CNY",
           nav: 4484700, marginUsed: 2400000, margin: 2400000, totalPnl: -620000,
           positions: [
             { code: "IF2606.CFFEX", dir: "空头", cost: 3850.0, avg: 3900.0, qty: 3 }
@@ -6604,7 +6701,7 @@
         {
           id: 6, realFundName: "JGH0000179-test_oms_8595", realFund: "JGH0000179", fundAccount: "JGH0000179",
           counterparty: "test_oms_8595对手", tradeAccount: "T10000003", customer: "test_oms_8595",
-          framework: "收益互换标准框架", marginMode: "剩余", leverage: 1,
+          framework: "收益互换标准框架", marginMode: "剩余", leverage: 1, currency: "CNY",
           nav: 500000, marginUsed: 0, margin: 0, totalPnl: 0,
           positions: []
         }
@@ -6641,19 +6738,22 @@
 
       /* ---------- 指标计算 ---------- */
       function derive(acc) {
+        const accCcy = acc.currency || "CNY";
         const posList = acc.positions.map((p) => {
           const it = instOf(p.code);
           const mult = it?.mult || 1;
           const last = it?.last || 0;
           const short = p.dir === "空头" ? -1 : 1;
-          const value = p.qty * last * mult;
+          const ccy = B.instrumentCcy ? B.instrumentCcy(p.code) : (it?.ccy || "CNY");
+          const fx = B.fxRate ? B.fxRate(ccy, accCcy) : 1;
+          const value = p.qty * last * mult * fx;
           return Object.assign({}, p, {
-            name: it?.name || p.code, last, mult,
+            name: it?.name || p.code, last, mult, ccy, fx,
             avail: p.avail == null ? p.qty : p.avail,
             assetType: it?.biz === "期货" ? "期货" : "股票",
-            value, notional: p.qty * p.avg * mult,
-            floatPnl: (last - p.avg) * p.qty * mult * short,
-            posPnl: (last - p.cost) * p.qty * mult * short
+            value, notional: p.qty * p.avg * mult * fx,
+            floatPnl: (last - p.avg) * p.qty * mult * short * fx,
+            posPnl: (last - p.cost) * p.qty * mult * short * fx
           });
         });
         const posValue = posList.reduce((s, p) => s + p.value, 0);
@@ -6753,6 +6853,7 @@
           case "资金账号名称": return `<td style="text-align:left">${acc.fundName}</td>`;
           case "交易对手名称": return `<td>${acc.counterparty}</td>`;
           case "交易账户": return `<td>${acc.tradeAccount}</td>`;
+          case "账户币种": return `<td>${acc.currency || "CNY"}</td>`;
           case "客户名": return `<td>${acc.customer}</td>`;
           case "净资产": return `<td class="num">${fmtAmount(acc.nav)}</td>`;
           case "保证金": return `<td class="num">${fmtAmount(acc.margin)}</td>`;
@@ -6928,15 +7029,16 @@
           return;
         }
         posBody.innerHTML = d.posList.map((p, i) => `
-          <tr data-code="${p.code}">${cols.map((c) => posCellFor(c, p, i, liqOk)).join("")}</tr>`).join("");
+          <tr data-code="${p.code}">${cols.map((c) => posCellFor(c, p, i)).join("")}</tr>`).join("");
         syncPosSelection();
       }
 
-      function posCellFor(col, p, index, liqOk) {
+      function posCellFor(col, p, index) {
         switch (col) {
           case "勾选": return `<td class="frz c0"><input type="checkbox" data-pos="${p.code}"${posChecked.has(p.code) ? " checked" : ""} /></td>`;
           case "序号": return `<td class="frz c1">${index + 1}</td>`;
           case "证券名称": return `<td style="text-align:left">${p.code} ${p.name}</td>`;
+          case "币种": return `<td>${p.ccy || instOf(p.code)?.ccy || "CNY"}</td>`;
           case "持仓方向": return `<td><span class="bk-tag ${p.dir === "多头" ? "side-buy" : "side-sell"}">${p.dir}</span></td>`;
           case "成本价": return `<td class="num">${fmtPrice(p.cost, p.code)}</td>`;
           case "持仓均价": return `<td class="num">${fmtPrice(p.avg, p.code)}</td>`;
@@ -6948,7 +7050,6 @@
           case "浮动盈亏": return `<td class="num" style="color:${p.floatPnl >= 0 ? "#ff5a0a" : "#14a58f"}">${fmtAmount(p.floatPnl)}</td>`;
           case "持仓盈亏": return `<td class="num" style="color:${p.posPnl >= 0 ? "#ff5a0a" : "#14a58f"}">${fmtAmount(p.posPnl)}</td>`;
           case "单票维持担保比例": return `<td class="num">${pct(p.singleRatio)}</td>`;
-          case "操作": return `<td><button class="bk-link danger" data-act="close" data-code="${p.code}" type="button"${liqOk ? "" : " disabled"}>强平</button></td>`;
           default: return `<td>--</td>`;
         }
       }
@@ -6956,16 +7057,6 @@
       function currentSnap() {
         const acc = accounts.find((a) => a.id === activeAccountId);
         return acc ? snapshot(acc) : null;
-      }
-
-      /* ---------- 单票强平：同样走强平篮子页面 ---------- */
-      function closeSingle(code) {
-        if (!canLiquidate()) return B.toast(`当前无「${activeMetric}」读写权限，强平已禁用`, "error");
-        const snap = currentSnap();
-        const p = snap?.d.posList.find((x) => x.code === code);
-        if (!p) return;
-        if (!HAS_BASKET_MODULE) return B.toast("未开通篮子管理，无法生成强平篮子", "error");
-        openMultiBasket([buildLiqBasket(snap, [p], "数量")]);
       }
 
       /* ---------- 强平篮子生成 ---------- */
@@ -7022,7 +7113,9 @@
           const mult = it?.mult || 1;
           const unit = it?.minUnit || 1;
           const amount = num(basket.totalAmount) * num(r.weight) / 100;
-          const raw = r.price > 0 ? amount / (r.price * mult) : 0;
+          const fx = B.fxRate ? B.fxRate(B.instrumentCcy(r.code), B.accountCcy(r.account)) : 1;
+          const unitAcc = r.price * mult * fx;
+          const raw = unitAcc > 0 ? amount / unitAcc : 0;
           r.calcQty = raw < unit ? 0 : Math.floor(raw / unit) * unit;
         });
         return basket;
@@ -7037,7 +7130,9 @@
         });
         resolveQty(basket);
         basket.rows.forEach((r) => {
-          r.estAmount = r.price * (instOf(r.code)?.mult || 1) * num(r.calcQty);
+          r.estAmount = B.estAmountInAccountCcy
+            ? B.estAmountInAccountCcy(r, r.calcQty)
+            : r.price * (instOf(r.code)?.mult || 1) * num(r.calcQty);
         });
         return basket;
       }
@@ -7105,7 +7200,7 @@
         const current = list[mbState.index];
         el("rkMbForm").style.display = current ? "" : "none";
         if (!current) {
-          body.innerHTML = `<tr class="empty-row"><td colspan="14">全部篮子已下单</td></tr>`;
+          body.innerHTML = `<tr class="empty-row"><td colspan="15">全部篮子已下单</td></tr>`;
           el("rkMbSummary").textContent = "";
           el("rkMbSend").disabled = true;
           el("rkMbSendAll").disabled = true;
@@ -7122,7 +7217,9 @@
         el("rkMbTotalField").style.display = byWeight ? "" : "none";
         el("rkMbQtyField").style.display = byWeight ? "none" : "";
         el("rkMbPriceTypeField").style.display = overviewMarket ? "none" : "";
-        el("rkMbEstAmount").textContent = `${fmtAmount(current.rows.reduce((s, r) => s + num(r.estAmount), 0))} CNY`;
+        el("rkMbEstAmount").textContent = B.formatEstByCcy
+          ? B.formatEstByCcy(current.rows, (r) => r.calcQty)
+          : `${fmtAmount(current.rows.reduce((s, r) => s + num(r.estAmount), 0))} ${current.accountCcy || "CNY"}`;
 
         /* 业务类型 / 资金账号 / 交易账户 / 框架名称 / 标的代码 不可修改 */
         body.innerHTML = current.rows.length
@@ -7137,6 +7234,7 @@
               <td>${r.hedge}</td>
               <td>${B.selectCell("orderType", i, B.ORDER_TYPES, r.orderType)}</td>
               <td style="text-align:left">${r.code} ${instOf(r.code)?.name || ""}</td>
+              <td>${B.instrumentCcy ? B.instrumentCcy(r.code) : (instOf(r.code)?.ccy || "CNY")}</td>
               <td>${B.selectCell("side", i, B.SIDES, r.side)}</td>
               <td>${B.selectCell("priceType", i, B.PRICE_TYPES, market ? "" : r.priceType, market)}</td>
               <td>${B.numCell("price", i, market ? "" : (r.missing ? "--" : fmtPrice(r.price, r.code)), market || r.priceType !== "指定价")}</td>
@@ -7146,7 +7244,7 @@
               <td><button class="bk-link danger" data-del="${i}" type="button">删除</button></td>
             </tr>`;
           }).join("")
-          : `<tr class="empty-row"><td colspan="14">该篮子明细已被全部删除</td></tr>`;
+          : `<tr class="empty-row"><td colspan="15">该篮子明细已被全部删除</td></tr>`;
 
         const invalid = current.rows.filter((r) => !r.calcQty).length;
         const weightSum = current.rows.reduce((s, r) => s + num(r.weight), 0);
@@ -7410,11 +7508,6 @@
         if (!code) return;
         if (event.target.checked) posChecked.add(code); else posChecked.delete(code);
         syncPosSelection();
-      });
-
-      posBody.addEventListener("click", (event) => {
-        if (event.target.dataset.act !== "close") return;
-        closeSingle(event.target.dataset.code);
       });
 
       function wireMenu(btnId, menuId, handler) {

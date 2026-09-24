@@ -3578,6 +3578,12 @@
             <input class="bk-input" id="rkFilterFund" style="width:180px" placeholder="全部" />
             <span class="bk-label">交易账户</span>
             <input class="bk-input" id="rkFilterAccount" style="width:140px" placeholder="全部" />
+            <span class="bk-label">是否追保</span>
+            <select class="bk-select" id="rkFilterCall" style="width:90px">
+              <option value="">全部</option>
+              <option value="yes">是</option>
+              <option value="no">否</option>
+            </select>
             <button class="bk-btn primary" id="rkFilterApply" type="button">筛选</button>
             <button class="bk-btn" id="rkFilterReset" type="button">重置</button>
             <span class="bk-spacer"></span>
@@ -3755,7 +3761,6 @@
             </select>
             <button class="bk-btn primary" id="bkMonSearch" type="button">查询</button>
             <span class="bk-divider"></span>
-            <button class="bk-btn" id="bkMonStart" type="button">启动</button>
             <button class="bk-btn danger" id="bkMonStop" type="button">终止</button>
             <span class="bk-spacer"></span>
             <span class="bk-count" id="bkMonCount">已勾选 0 / 0 条</span>
@@ -3793,7 +3798,7 @@
           <div class="bk-split-bottom">
             <div class="bk-section-title">
               <span id="bkMonDetailTitle">篮子执行明细</span>
-              <span class="bk-count">点击上方任一篮子行或「详情」查看执行明细</span>
+              <span class="bk-count">点击上方任一篮子行查看执行明细</span>
             </div>
             <div class="bk-table-wrap">
               <table class="bk-table" id="bkMonDetailTable" style="min-width:1502px">
@@ -4091,18 +4096,6 @@
             <select class="bk-select" id="bkOrderOrderType">
               <option value="限价单">限价单</option>
               <option value="市价单">市价单</option>
-            </select>
-          </div>
-          <div class="bk-field">
-            <span class="bk-label">订单方向</span>
-            <select class="bk-select" id="bkOrderSide">
-              <option value="按篮子配置">按篮子配置</option>
-              <option value="买入">买入</option>
-              <option value="卖出">卖出</option>
-              <option value="买开">买开</option>
-              <option value="卖平">卖平</option>
-              <option value="卖开">卖开</option>
-              <option value="买平">买平</option>
             </select>
           </div>
           <div class="bk-field" id="bkOrderPriceTypeField">
@@ -5524,7 +5517,7 @@
       function resolvePrice(code, priceType, fallback) {
         const it = inst(code);
         if (!it) return { price: num(fallback) };
-        if (priceType === "指定价") return { price: num(fallback) || it.last };
+        if (priceType === "指定价") return { price: num(fallback) };
         if (priceType === "最新价") return { price: it.last };
         if (priceType === "涨停价") return it.upper == null ? { price: 0, missing: "涨" } : { price: it.upper };
         if (priceType === "跌停价") return it.lower == null ? { price: 0, missing: "跌" } : { price: it.lower };
@@ -5661,6 +5654,10 @@
 
       function isMarketOrder(orderType) {
         return orderType === "市价单";
+      }
+
+      function missingLimitPrice(rows) {
+        return rows.filter((r) => !isMarketOrder(r.orderType) && !(num(r.price) > 0));
       }
 
       /* 市价单：价格类型/委托价格置空展示；限价单：恢复可编辑 */
@@ -5911,6 +5908,11 @@
           if (showToast) toast(`标的${bad.code}没有${resolvePrice(bad.code, bad.priceType, bad.price).missing}停价，请调整价格类型`, "error");
           return false;
         }
+        const emptyPx = missingLimitPrice(editState.rows);
+        if (emptyPx.length) {
+          if (showToast) toast(`限价单的委托价格不能为空（${emptyPx.map((r) => r.code).join("、")}）`, "error");
+          return false;
+        }
         return true;
       }
 
@@ -6038,8 +6040,8 @@
       posAccount.addEventListener("change", renderPositions);
 
       document.querySelector("#bkImportPosConfirm").addEventListener("click", () => {
-        const picked = POSITIONS.filter((p) => posChecked.has(p.code + p.account));
-        if (!picked.length) return toast("请至少勾选一条持仓", "error");
+        const picked = POSITIONS.filter((p) => posChecked.has(p.code + p.account) && num(p.avail == null ? p.qty : p.avail) > 0);
+        if (!picked.length) return toast("勾选持仓的可用数量均为 0，未生成篮子明细", "error");
         const totalValue = picked.reduce((s, p) => s + positionValue(p), 0);
         const byWeight = importMode === "按市值导入";
         const rows = picked.map((p, i) => {
@@ -6102,7 +6104,6 @@
       const orderBasketQty = document.querySelector("#bkOrderBasketQty");
       const orderTotalAmount = document.querySelector("#bkOrderTotalAmount");
       const orderOrderType = document.querySelector("#bkOrderOrderType");
-      const orderSide = document.querySelector("#bkOrderSide");
       const orderPriceType = document.querySelector("#bkOrderPriceType");
       const orderAlgo = document.querySelector("#bkOrderAlgo");
 
@@ -6217,7 +6218,6 @@
         orderBasketQty.value = orderState.basketQty;
         orderTotalAmount.value = orderState.totalAmount;
         orderOrderType.value = orderState.orderType;
-        orderSide.value = BY_BASKET;
         orderPriceType.value = BY_BASKET;
         orderAlgo.value = BY_BASKET;
         renderOrderRows();
@@ -6258,14 +6258,6 @@
         renderOrderRows();
       });
 
-      orderSide.addEventListener("change", () => {
-        orderState.sideMode = orderSide.value;
-        if (orderState.sideMode !== BY_BASKET) {
-          orderState.rows.forEach((r) => { r.side = orderState.sideMode; });
-        }
-        renderOrderRows();
-      });
-
       orderPriceType.addEventListener("change", () => {
         orderState.priceMode = orderPriceType.value;
         if (orderState.priceMode !== BY_BASKET) {
@@ -6298,6 +6290,8 @@
         } else if (num(orderState.basketQty) <= 0) {
           return toast("请填写篮子数量", "error");
         }
+        const emptyPx = missingLimitPrice(checkedRows);
+        if (emptyPx.length) return toast(`限价单的委托价格不能为空（${emptyPx.map((r) => r.code).join("、")}）`, "error");
         const valid = checkedRows.filter((r) => !r.invalid);
         if (!valid.length) return toast("已勾选项均为无效委托，无法下单", "error");
         const invalidCount = checkedRows.length - valid.length;
@@ -6363,9 +6357,9 @@
               <td class="frz c0"><input type="checkbox" data-run="${run.id}"${runChecked.has(run.id) ? " checked" : ""} /></td>
               <td class="frz c1">${i + 1}</td>
               <td><div class="ops">
-                <button class="bk-link" data-act="detail" type="button">详情</button>
                 ${status === "已终止" ? '<button class="bk-link" data-act="replenish" type="button">补单</button>' : ""}
                 ${status === "运行中" ? '<button class="bk-link danger" data-act="stop" type="button">终止</button>' : ""}
+                ${status !== "已终止" && status !== "运行中" ? "--" : ""}
               </div></td>
               <td style="text-align:left">${run.name}</td>
               <td><span class="bk-tag ${statusTagClass(status)}">${status}</span></td>
@@ -6389,7 +6383,7 @@
         const counts = { 运行中: 0, 已完成: 0, 已终止: 0 };
         items.forEach((r) => { counts[runStatus(r)] += 1; });
         monSummary.innerHTML = `共 <strong>${items.length}</strong> 个篮子 &nbsp;运行中 <strong>${counts["运行中"]}</strong> &nbsp;已完成 <strong>${counts["已完成"]}</strong> &nbsp;已终止 <strong>${counts["已终止"]}</strong>`
-          + `&nbsp;&nbsp;<span class="warn">「启动」「终止」对已勾选篮子批量生效；终止会撤销该篮子关联的全部在途订单</span>`;
+          + `&nbsp;&nbsp;<span class="warn">「终止」对已勾选篮子批量生效；终止会撤销该篮子关联的全部在途订单</span>`;
       }
 
       function renderRunDetail(run) {
@@ -6448,26 +6442,6 @@
       function checkedRuns() {
         return runs.filter((r) => runChecked.has(r.id));
       }
-
-      document.querySelector("#bkMonStart").addEventListener("click", () => {
-        const targets = checkedRuns();
-        if (!targets.length) return toast("请先勾选需要启动的篮子", "error");
-        let started = 0;
-        let skipped = 0;
-        targets.forEach((run) => {
-          const status = runStatus(run);
-          if (status === "运行中" || status === "已完成") { skipped += 1; return; }
-          run.orders.forEach((o) => {
-            if (o.status === "已成") return;
-            o.status = o.filledQty > 0 ? "部成" : "已报";
-          });
-          run.stoppedAt = "";
-          started += 1;
-        });
-        renderRuns();
-        if (started) toast(`已启动 ${started} 个篮子，未成交委托已重新发出`, "ok");
-        if (skipped) toast(`${skipped} 个篮子处于运行中/已完成，已跳过`, "error");
-      });
 
       function stopRuns(targets) {
         let stopped = 0;
@@ -6569,6 +6543,7 @@
         selectCell,
         symbolCell,
         isMarketOrder,
+        missingLimitPrice,
         applyOrderTypeToRow,
         applyTickOffset,
         numCell,
@@ -6609,24 +6584,24 @@
       const SUMMARY = "汇总";
 
       const COLUMNS = {
-        "汇总": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "账户币种", "净资产", "交易保证金", "待追保金额", "持仓市值", "持仓名本", "维持担保比例", "剩余流动性占比", "保证金损耗比例", "风控线", "风控状态", "交易状态", "自动强平"],
-        "维持担保比例": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "净资产", "交易保证金", "待追保金额", "持仓市值", "持仓名本", "维持担保比例", "风控状态", "交易状态", "强平状态", "自动强平"],
-        "剩余流动性占比": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "保证金", "交易保证金", "待追保金额", "持仓市值", "持仓名本", "剩余流动性占比", "风控状态", "交易状态", "自动强平"],
+        "汇总": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "账户币种", "净资产", "交易占资", "待追保金额", "持仓市值", "持仓名本", "维持担保比例", "剩余流动性占比", "保证金损耗比例", "风控线", "风控状态", "交易状态", "自动强平"],
+        "维持担保比例": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "净资产", "交易占资", "待追保金额", "持仓市值", "持仓名本", "维持担保比例", "风控状态", "交易状态", "强平状态", "自动强平"],
+        "剩余流动性占比": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "保证金", "交易占资", "待追保金额", "持仓市值", "持仓名本", "剩余流动性占比", "风控状态", "交易状态", "自动强平"],
         "保证金损耗比例": ["勾选", "序号", "客户名", "资金账号名称", "交易对手名称", "交易账户", "保证金", "持仓市值", "总盈亏", "保证金损耗比例", "待追保金额", "风控状态", "交易状态", "自动强平"]
       };
       const WIDTH = {
         "勾选": 40, "序号": 44, "资金账号名称": 196, "交易对手名称": 140, "交易账户": 112, "账户币种": 80, "客户名": 130,
-        "净资产": 132, "保证金": 132, "交易保证金": 132, "待追保金额": 132,
+        "净资产": 132, "保证金": 132, "交易占资": 132, "待追保金额": 132,
         "持仓市值": 132, "持仓名本": 132, "总盈亏": 132,
         "维持担保比例": 118, "剩余流动性占比": 124, "保证金损耗比例": 124,
         "风控线": 124, "风控状态": 88, "交易状态": 92, "强平状态": 88, "自动强平": 80
       };
 
       /* 客户持仓列：单票维持担保比例仅在维持担保比例 sheet 出现 */
-      const POS_COLUMNS = ["勾选", "序号", "证券名称", "币种", "持仓方向", "成本价", "持仓均价", "可用数量", "持仓数量", "持仓市值", "持仓名本", "交易保证金", "浮动盈亏", "持仓盈亏", "单票维持担保比例"];
+      const POS_COLUMNS = ["勾选", "序号", "证券名称", "币种", "持仓方向", "成本价", "持仓均价", "可用数量", "持仓数量", "持仓市值", "持仓名本", "交易占资", "浮动盈亏", "持仓盈亏", "单票维持担保比例"];
       const POS_WIDTH = {
         "勾选": 40, "序号": 44, "证券名称": 160, "币种": 62, "持仓方向": 80, "成本价": 96, "持仓均价": 96,
-        "可用数量": 100, "持仓数量": 100, "持仓市值": 126, "持仓名本": 126, "交易保证金": 126,
+        "可用数量": 100, "持仓数量": 100, "持仓市值": 126, "持仓名本": 126, "交易占资": 126,
         "浮动盈亏": 120, "持仓盈亏": 120, "单票维持担保比例": 140
       };
 
@@ -6811,7 +6786,7 @@
       let accChecked = new Set();
       let mtmTime = "2026-07-28 15:20:06";
       let pendingFlashId = null;
-      let filters = { customer: "", fundName: "", tradeAccount: "" };
+      let filters = { customer: "", fundName: "", tradeAccount: "", needCall: "" };
       let lastOrder = [];
       let keepOrder = false;
       const closeStatus = {};
@@ -6839,7 +6814,7 @@
 
       const statusOf = (snap) => (activeMetric === SUMMARY ? worstOf(snap) : snap.status[activeMetric]);
 
-      /* 待追保金额：沿用原超额保证金公式 = 净资产 - 交易保证金 */
+      /* 待追保金额：沿用原超额保证金公式 = 净资产 - 交易占资 */
       const callAmount = (acc, d) => d.excess;
 
       const autoCloseOf = (acc) => metricsInScope().some((m) => rulesOf(acc, m).some((r) => r.autoClose));
@@ -6857,7 +6832,7 @@
           case "客户名": return `<td>${acc.customer}</td>`;
           case "净资产": return `<td class="num">${fmtAmount(acc.nav)}</td>`;
           case "保证金": return `<td class="num">${fmtAmount(acc.margin)}</td>`;
-          case "交易保证金": return `<td class="num">${fmtAmount(d.tradeMargin)}</td>`;
+          case "交易占资": return `<td class="num">${fmtAmount(d.tradeMargin)}</td>`;
           case "待追保金额": {
             const v = callAmount(acc, d);
             return `<td class="num" style="color:${v >= 0 ? "#f1f3f8" : "#ff8f8f"}">${fmtAmount(v)}</td>`;
@@ -6882,11 +6857,16 @@
       }
 
       function matchFilters(snap) {
-        const { acc } = snap;
+        const { acc, d } = snap;
         const hit = (v, kw) => !kw || String(v).toLowerCase().includes(kw.toLowerCase());
+        const amount = callAmount(acc, d);
+        const callHit = !filters.needCall
+          || (filters.needCall === "yes" && amount > 0)
+          || (filters.needCall === "no" && !(amount > 0));
         return hit(acc.customer, filters.customer)
           && hit(acc.fundName, filters.fundName)
-          && hit(acc.tradeAccount, filters.tradeAccount);
+          && hit(acc.tradeAccount, filters.tradeAccount)
+          && callHit;
       }
 
       function riskSort(a, b) {
@@ -7020,7 +7000,7 @@
           return;
         }
         const { acc, d } = snap;
-        el("rkPosTitle").textContent = `客户持仓 — ${acc.tradeAccount}（${acc.customer}）`;
+        el("rkPosTitle").textContent = `客户持仓 — ${acc.tradeAccount} / ${acc.counterparty}`;
 
         if (!d.posList.length) {
           posBody.innerHTML = `<tr class="empty-row"><td colspan="${cols.length}">该账户暂无持仓（开户后无市值，风控线不触发）</td></tr>`;
@@ -7046,7 +7026,7 @@
           case "持仓数量": return `<td class="num">${fmtQty(p.qty)}</td>`;
           case "持仓市值": return `<td class="num">${fmtAmount(p.value)}</td>`;
           case "持仓名本": return `<td class="num">${fmtAmount(p.notional)}</td>`;
-          case "交易保证金": return `<td class="num">${fmtAmount(p.marginUsed)}</td>`;
+          case "交易占资": return `<td class="num">${fmtAmount(p.marginUsed)}</td>`;
           case "浮动盈亏": return `<td class="num" style="color:${p.floatPnl >= 0 ? "#ff5a0a" : "#14a58f"}">${fmtAmount(p.floatPnl)}</td>`;
           case "持仓盈亏": return `<td class="num" style="color:${p.posPnl >= 0 ? "#ff5a0a" : "#14a58f"}">${fmtAmount(p.posPnl)}</td>`;
           case "单票维持担保比例": return `<td class="num">${pct(p.singleRatio)}</td>`;
@@ -7070,8 +7050,9 @@
       /* 篮子名称：强平_资金账号名称或交易账户_YYYYMMDDHHMMSS */
       function buildLiqBasket(snap, picked, mode) {
         const byWeight = mode === "市值";
-        const totalValue = picked.reduce((s, p) => s + p.value, 0);
-        const rows = picked.map((p) => {
+        const eligible = picked.filter((p) => num(p.avail == null ? p.qty : p.avail) > 0);
+        const totalValue = eligible.reduce((s, p) => s + p.value, 0);
+        const rows = eligible.map((p) => {
           const isLong = p.dir === "多头";
           const autoSide = p.assetType === "期货" ? (isLong ? "卖出" : "买入") : "卖出";
           const weight = byWeight && totalValue > 0 ? Number(((p.value / totalValue) * 100).toFixed(2)) : 0;
@@ -7145,7 +7126,9 @@
         const picked = snap.d.posList.filter((p) => posChecked.has(p.code));
         if (!picked.length) return B.toast("请先勾选需要强平的持仓", "error");
         if (!HAS_BASKET_MODULE) return B.toast("未开通篮子管理，无法生成强平篮子", "error");
-        openMultiBasket([buildLiqBasket(snap, picked, mode)]);
+        const basket = buildLiqBasket(snap, picked, mode);
+        if (!basket.rows.length) return B.toast("勾选持仓的可用数量均为 0，未生成篮子明细", "error");
+        openMultiBasket([basket]);
       }
 
       /* ---------- 批量强平账户：按账户维度生成多个篮子 ---------- */
@@ -7157,8 +7140,9 @@
           .filter(Boolean)
           .map((acc) => snapshot(acc))
           .filter((snap) => snap.d.posList.length)
-          .map((snap) => buildLiqBasket(snap, snap.d.posList, mode));
-        if (!baskets.length) return B.toast("勾选的账户没有可强平的持仓", "error");
+          .map((snap) => buildLiqBasket(snap, snap.d.posList, mode))
+          .filter((b) => b.rows.length);
+        if (!baskets.length) return B.toast("勾选的账户没有可用数量大于 0 的持仓，未生成篮子明细", "error");
         openMultiBasket(baskets);
       }
 
@@ -7268,6 +7252,7 @@
         const snap = snapshot(acc);
         if (!snap.d.posList.length) return null;
         const basket = resolveQty(buildLiqBasket(snap, snap.d.posList, "市值"));
+        if (!basket.rows.length) return null;
         const run = sendOneBasket(basket);
         if (run) B.toast(`${acc.tradeAccount} 触发${trigger.ruleName}且已配置自动强平，已自动生成篮子「${run.name}」并下单`, "error");
         return run;
@@ -7434,7 +7419,8 @@
         filters = {
           customer: el("rkFilterCustomer").value.trim(),
           fundName: el("rkFilterFund").value.trim(),
-          tradeAccount: el("rkFilterAccount").value.trim()
+          tradeAccount: el("rkFilterAccount").value.trim(),
+          needCall: el("rkFilterCall").value
         };
         renderList();
       }
@@ -7444,6 +7430,7 @@
         el("rkFilterCustomer").value = "";
         el("rkFilterFund").value = "";
         el("rkFilterAccount").value = "";
+        el("rkFilterCall").value = "";
         statusFilter = "";
         applyFilters();
       });
@@ -7452,6 +7439,7 @@
           if (event.key === "Enter") applyFilters();
         });
       });
+      el("rkFilterCall").addEventListener("change", applyFilters);
 
       /* ---------- 事件绑定 ---------- */
       document.querySelectorAll("#rkSheets .rk-sheet").forEach((btn) => {
@@ -7608,9 +7596,15 @@
         renderMultiBasket();
       });
 
+      function mbMissingPrice(basket) {
+        return B.missingLimitPrice ? B.missingLimitPrice(basket.rows) : basket.rows.filter((r) => r.orderType !== "市价单" && !(num(r.price) > 0));
+      }
+
       el("rkMbSend").addEventListener("click", () => {
         const current = mbState.baskets[mbState.index];
         if (!current) return;
+        const emptyPx = mbMissingPrice(current);
+        if (emptyPx.length) return B.toast(`限价单的委托价格不能为空（${emptyPx.map((r) => r.code).join("、")}）`, "error");
         B.askConfirm(
           "篮子下单二次确认",
           `您确定要下单这个篮子吗？<br /><span style="color:#9ba1ae">${current.name}，${current.alloc}，共 ${current.rows.length} 笔，委托属性为「强平委托」。</span>`,
@@ -7632,6 +7626,8 @@
       el("rkMbSendAll").addEventListener("click", () => {
         const list = mbState.baskets;
         if (!list.length) return;
+        const emptyPx = list.flatMap(mbMissingPrice);
+        if (emptyPx.length) return B.toast(`限价单的委托价格不能为空（${[...new Set(emptyPx.map((r) => r.code))].join("、")}）`, "error");
         B.askConfirm(
           "篮子下单二次确认",
           `您确定要下单这些篮子吗？<br /><span style="color:#9ba1ae">共 ${list.length} 个篮子、${list.reduce((s, b) => s + b.rows.length, 0)} 笔委托，委托属性均为「强平委托」。</span>`,
